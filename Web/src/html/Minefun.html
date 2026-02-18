@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minefun.io | Arcade-Z</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* --- PANTALLA DE CARGA ESTILO MINECRAFT --- */
+        #loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%); /* Cielo */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.8s ease;
+        }
+
+        .loader-title {
+            color: white;
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 30px;
+            text-shadow: 3px 3px 0px #2c3e50;
+        }
+
+        /* BLOQUE 3D ANIMADO CON CSS */
+        .cube {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            animation: rotate 2s infinite linear;
+        }
+
+        .face {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid rgba(0,0,0,0.1);
+        }
+
+        .top    { background: #5dae47; transform: rotateX(90deg) translateZ(30px); }
+        .bottom { background: #795548; transform: rotateX(-90deg) translateZ(30px); }
+        .front  { background: #8d6e63; transform: translateZ(30px); }
+        .back   { background: #8d6e63; transform: rotateY(180deg) translateZ(30px); }
+        .left   { background: #795548; transform: rotateY(-90deg) translateZ(30px); }
+        .right  { background: #795548; transform: rotateY(90deg) translateZ(30px); }
+
+        @keyframes rotate {
+            0% { transform: rotateX(-20deg) rotateY(0deg); }
+            100% { transform: rotateX(-20deg) rotateY(360deg); }
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #32ff7e;
+            animation: fill 3s forwards;
+        }
+
+        @keyframes fill {
+            to { width: 100%; }
+        }
+
+        /* --- CONTENEDOR DEL IFRAME --- */
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="cube">
+            <div class="face top"></div>
+            <div class="face bottom"></div>
+            <div class="face front"></div>
+            <div class="face back"></div>
+            <div class="face left"></div>
+            <div class="face right"></div>
+        </div>
+        <div class="loader-title">MINEFUN.IO</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <p style="color: white; font-size: 12px; margin-top: 10px; opacity: 0.8;">Cargando mundo de bloques...</p>
+    </div>
+
+    <iframe 
+        id="minefun-frame"
+        src="https://minefun.io" 
+        allow="autoplay; pointer-lock; fullscreen"
+        sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-scripts allow-same-origin"
+        onload="finishLoading()">
+    </iframe>
+
+    <script>
+        function finishLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            // Damos un pequeño delay extra para que el juego termine de renderizar
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 800);
+            }, 1500);
+        }
+
+        // Evitar redirecciones accidentales
+        window.onbeforeunload = function() {
+            return "¿Deseas abandonar la partida?";
+        };
+    </script>
+</body>
+</html>

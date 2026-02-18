@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade-Z | Jugando ahora</title>
+    <style>
+        :root {
+            --accent: #32ff7e; /* Verde neón estilo Poki/Gamer */
+            --bg-body: #0f0f11;
+            --bg-nav: #1a1a1d;
+            --bg-card: #252529;
+            --text-main: #ffffff;
+            --text-dim: #9ca3af;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- NAVBAR --- */
+        nav {
+            background: var(--bg-nav);
+            height: 65px;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            gap: 20px;
+            border-bottom: 2px solid #2d2d33;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+        }
+
+        .search-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-bar {
+            background: #2a2a2e;
+            border: 1px solid #3f3f46;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            width: 100%;
+            max-width: 500px;
+            outline: none;
+        }
+
+        .btn-premium {
+            background: var(--accent);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+            padding: 25px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* --- SECCIÓN DEL JUEGO --- */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .viewport-container {
+            background: #000;
+            width: 100%;
+            height: 600px; /* Altura por defecto */
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        /* Clase para juegos verticales (Subway Surfers, etc) */
+        .mode-vertical {
+            max-width: 420px;
+            height: 650px;
+            margin: 0 auto;
+        }
+
+        /* --- INFO DEL JUEGO --- */
+        .game-header {
+            background: var(--bg-nav);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-box h1 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--accent);
+        }
+
+        .title-box p {
+            margin: 5px 0 0;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: #333338;
+            border: none;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+
+        .action-btn:hover {
+            background: #44444a;
+            transform: translateY(-2px);
+        }
+
+        /* --- SIDEBAR (RECOMENDADOS) --- */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .rec-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 15px;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .rec-card:hover {
+            border-color: var(--accent);
+            background: #2d2d33;
+        }
+
+        .rec-thumb {
+            width: 70px;
+            height: 70px;
+            background: #1a1a1d;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .rec-info .rec-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .rec-info .rec-cat {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        /* Estética Scrollbar */
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-track { background: var(--bg-body); }
+        .main-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo">Arcade-Z</a>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Busca tu próximo desafío...">
+        </div>
+        <button class="btn-premium">MODO PRO</button>
+    </nav>
+
+    <div class="main-content">
+        <div class="game-area">
+            <div id="game-vp" class="viewport-container">
+                <iframe id="game-iframe" src="" allow="autoplay; pointer-lock"></iframe>
+            </div>
+
+            <div class="game-header">
+                <div class="title-box">
+                    <h1 id="display-name">Cargando Juego...</h1>
+                    <p>Publicado por Arcade-Z Studios • v1.0.4</p>
+                </div>
+                <div class="game-actions">
+                    <button class="action-btn">👍 Like</button>
+                    <button class="action-btn">⭐</button>
+                    <button class="action-btn" onclick="toggleFull()">⛶ Pantalla Completa</button>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-nav); padding: 25px; border-radius: 16px;">
+                <h3 style="margin-top:0">Descripción del Juego</h3>
+                <p style="color: var(--text-dim); line-height: 1.6;">
+                    Estás experimentando <b>Arcade-Z Engine</b>. Este juego se ejecuta de forma nativa en tu navegador sin necesidad de descargas. 
+                    Utiliza los controles indicados para cada título. ¡Registra tu puntuación para aparecer en el ranking global!
+                </p>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-title">Más Populares</div>
+            
+            <a href="play.html?game=Minefun" class="rec-card">
+                <div class="rec-thumb">🧱</div>
+                <div class="rec-info">
+                    <span class="rec-title">Minefun.io</span>
+                    <span class="rec-cat">Construcción / 3D</span>
+                </div>
+            </a>
+
+            <a href="play.html?game=subway" class="rec-card">
+                <div class="rec-thumb">🏃</div>
+                <div class="rec-info">
+                    <span class="rec-title">Subway Runner Z</span>
+                    <span class="rec-cat">Acción / Parkour</span>
+                </div>
+            </a>
+
+            <div style="background: #1a1a1d; padding: 20px; border-radius: 12px; border: 1px dashed #333; text-align: center; color: #555;">
+                Próximamente más juegos...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lógica de carga dinámica desde la subcarpeta src/html/
+        const params = new URLSearchParams(window.location.search);
+        const gameId = params.get('game');
+        
+        const frame = document.getElementById('game-iframe');
+        const titleText = document.getElementById('display-name');
+        const viewport = document.getElementById('game-vp');
+
+        if (gameId) {
+            // CARGA EL JUEGO DESDE LA RUTA ESPECIFICADA
+            frame.src = "src/html/" + gameId + ".html";
+            titleText.innerText = gameId.toUpperCase().replace(/-/g, ' ');
+
+            // DETECTAR MODO VERTICAL (Para Subway Surfers)
+            if (gameId.toLowerCase().includes('subway') || gameId.toLowerCase().includes('runner')) {
+                viewport.classList.add('mode-vertical');
+            }
+        } else {
+            // Si no hay juego, regresa al inicio
+            window.location.href = 'index.html';
+        }
+
+        function toggleFull() {
+            if (!document.fullscreenElement) {
+                viewport.requestFullscreen().catch(err => {
+                    alert(`Error al intentar pantalla completa: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>

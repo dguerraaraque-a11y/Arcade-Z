@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade-Z | Tu Portal de Juegos</title>
+    <style>
+        :root {
+            --accent: #00f2ff;
+            --bg-dark: #0a0a0c;
+            --card-bg: #1a1a1e;
+            --text: #ffffff;
+            --gradient: linear-gradient(135deg, #00f2ff 0%, #0072ff 100%);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        .nav-links span {
+            margin-left: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-links span:hover {
+            color: var(--accent);
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            padding: 40px 50px;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(10,10,12,1)), url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            text-align: center;
+        }
+
+        /* --- GRID DE JUEGOS --- */
+        .container {
+            padding: 40px 50px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 5px;
+            height: 25px;
+            background: var(--accent);
+            margin-right: 15px;
+            border-radius: 10px;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 1px solid #333;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.2);
+            border-color: var(--accent);
+        }
+
+        .game-thumb {
+            width: 100%;
+            height: 150px;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .game-info {
+            padding: 15px;
+        }
+
+        .game-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">Arcade-Z</a>
+        <div class="nav-links">
+            <span>Inicio</span>
+            <span>Populares</span>
+            <span>Nuevo</span>
+            <span style="background: var(--gradient); padding: 8px 15px; border-radius: 20px;">Premium</span>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>¡Bienvenido a la Zona Z!</h1>
+        <p>Los mejores juegos HTML5 sin descargas.</p>
+    </div>
+
+    <div class="container">
+        <div class="section-title">Juegos Tendencia</div>
+        
+        <div class="game-grid">
+            <a href="play.html?game=subway" class="game-card">
+                <div class="game-thumb" style="background: linear-gradient(45deg, #ffcc00, #ff5500);">🏃‍♂️</div>
+                <div class="game-info">
+                    <div class="game-title">Subway Runner Z</div>
+                    <div style="font-size: 12px; color: #888;">Acción / Carreras</div>
+                </div>
+            </a>
+
+            <div class="game-card">
+                <div class="game-thumb" style="background: #2c3e50;">🧩</div>
+                <div class="game-info">
+                    <div class="game-title">Próximamente...</div>
+                    <div style="font-size: 12px; color: #888;">Puzzle</div>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumb" style="background: #27ae60;">⚽</div>
+                <div class="game-info">
+                    <div class="game-title">Z-Soccer</div>
+                    <div style="font-size: 12px; color: #888;">Deportes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
