@@ -11,6 +11,11 @@
             --card-bg: #1a1a1e;
             --text: #ffffff;
             --gradient: linear-gradient(135deg, #00f2ff 0%, #0072ff 100%);
+            /* Variables Arcade 3D */
+            --neon-blue: #00f2ff;
+            --neon-pink: #ff003c;
+            --cabinet-main: #1a1a2e;
+            --cabinet-dark: #111122;
         }
 
         body {
@@ -40,21 +45,44 @@
             font-weight: 800;
             letter-spacing: -1px;
             background: var(--gradient);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
             text-decoration: none;
         }
 
-        .nav-links span {
+        .nav-links a {
             margin-left: 20px;
             cursor: pointer;
             font-weight: 500;
             transition: 0.3s;
+            text-decoration: none;
+            color: var(--text);
         }
 
-        .nav-links span:hover {
+        .nav-links a:hover {
             color: var(--accent);
+        }
+
+        /* --- SEARCH BAR --- */
+        .search-box {
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 20px;
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            margin: 0 20px;
+        }
+
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            padding: 5px;
+            font-family: inherit;
         }
 
         /* --- HERO SECTION --- */
@@ -63,7 +91,131 @@
             background: linear-gradient(rgba(0,0,0,0.5), rgba(10,10,12,1)), url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
             background-size: cover;
             background-position: center;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-text {
+            max-width: 500px;
+            text-align: left;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+
+        /* --- ARCADE 3D STYLES --- */
+        .arcade-3d-wrapper {
+            perspective: 1000px;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cabinet-3d {
+            position: relative;
+            width: 140px;
+            height: 200px;
+            transform: rotateY(-25deg) rotateX(5deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+            cursor: pointer;
+        }
+
+        .cabinet-3d:hover {
+            transform: rotateY(-10deg) rotateX(0deg) scale(1.1);
+        }
+
+        .face { position: absolute; border-radius: 8px; }
+
+        .front {
+            width: 100%; height: 100%;
+            background: var(--cabinet-main);
+            z-index: 2;
+            border: 2px solid #222;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 5px; box-sizing: border-box;
+        }
+
+        .side {
+            width: 40px; height: 100%;
+            background: var(--cabinet-dark);
+            right: -20px;
+            transform: rotateY(90deg);
+            z-index: 1;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .marquee-pro {
+            width: 100%; height: 40px;
+            background: #000;
+            border: 2px solid var(--neon-blue);
+            box-shadow: inset 0 0 10px var(--neon-blue);
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .glitch-title {
+            color: #fff; font-family: sans-serif; font-weight: 900; font-size: 16px;
+            text-shadow: 2px 0 var(--neon-pink), -2px 0 var(--neon-blue);
+        }
+
+        .screen-container {
+            width: 90%; height: 80px;
+            background: #050505; border: 3px solid #333;
+            position: relative; overflow: hidden;
+        }
+
+        .crt-lines {
+            position: absolute; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .control-panel {
+            width: 100%; height: 30px;
+            background: #222; margin-top: auto;
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 2px solid #444;
+        }
+
+        .stick {
+            width: 10px; height: 10px;
+            background: var(--neon-pink); border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        .btns { display: flex; gap: 4px; }
+        .b-red, .b-cyan { width: 8px; height: 8px; border-radius: 50%; }
+        .b-red { background: var(--neon-pink); }
+        .b-cyan { background: var(--neon-blue); }
+
+        .bottom-part {
+            width: 100%; height: 30px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .coin-red {
+            width: 10px; height: 15px;
+            background: #000; border: 1px solid var(--neon-pink);
+            box-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        .floor-shadow {
+            position: absolute; width: 120%; height: 20px;
+            background: rgba(0, 242, 255, 0.2); bottom: -20px; left: -10%;
+            filter: blur(15px); transform: rotateX(90deg);
         }
 
         /* --- GRID DE JUEGOS --- */
@@ -129,17 +281,58 @@
             font-weight: bold;
             font-size: 16px;
         }
+
+        /* --- ANIMACIONES --- */
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        nav { animation: slideDown 0.8s ease-out; }
+        .hero-text { animation: fadeInUp 1s ease-out 0.2s backwards; }
+        .arcade-3d-wrapper { animation: float 6s ease-in-out infinite; }
+        
+        .game-card { opacity: 0; animation: fadeInUp 0.6s ease-out forwards; }
+        .game-card:nth-child(1) { animation-delay: 0.4s; }
+        .game-card:nth-child(2) { animation-delay: 0.5s; }
+        .game-card:nth-child(3) { animation-delay: 0.6s; }
+        .game-card:nth-child(4) { animation-delay: 0.7s; }
+        .game-card:nth-child(5) { animation-delay: 0.8s; }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        /* --- PARTICLES --- */
+        #particles-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
     <nav>
-        <a href="index.html" class="logo">Arcade-Z</a>
+        <a href="#" class="logo">Arcade-Z</a>
         <div class="nav-links">
-            <span>Inicio</span>
-            <span>Populares</span>
-            <span>Nuevo</span>
-            <span style="background: var(--gradient); padding: 8px 15px; border-radius: 20px;">Premium</span>
+            <a href="#">Inicio</a>
+            <a href="#juegos">Populares</a>
+            <a href="#juegos">Nuevo</a>
+            <a href="#" style="background: var(--gradient); padding: 8px 15px; border-radius: 20px;">Premium</a>
         </div>
     </nav>
 	<div id="cookie-banner" class="cookie-box">
@@ -215,39 +408,141 @@
 </script>
 
     <div class="hero">
-        <h1>¡Bienvenido a la Zona Z!</h1>
-        <p>Los mejores juegos HTML5 sin descargas.</p>
+        <canvas id="particles-canvas"></canvas>
+        <div class="hero-text">
+            <h1>¡Bienvenido a la Zona Z!</h1>
+            <p>Los mejores juegos HTML5 sin descargas. Sumérgete en el arcade del futuro.</p>
+            <a href="#juegos" class="cta-button" style="display:inline-block; margin-top:20px; padding:10px 25px; background:var(--accent); color:#000; text-decoration:none; font-weight:bold; border-radius:5px; transition: 0.3s;">JUGAR AHORA</a>
+        </div>
+        
+        <!-- 3D ARCADE INTEGRATION -->
+        <div class="arcade-3d-wrapper">
+            <div class="cabinet-3d">
+                <div class="face front">
+                    <div class="marquee-pro">
+                        <span class="glitch-title">ARCADE-Z</span>
+                    </div>
+                    <div class="screen-container">
+                        <div class="crt-lines"></div>
+                    </div>
+                    <div class="control-panel">
+                        <div class="stick"></div>
+                        <div class="btns"><div class="b-red"></div><div class="b-cyan"></div></div>
+                    </div>
+                    <div class="bottom-part"><div class="coin-red"></div></div>
+                </div>
+                <div class="face side"></div>
+                <div class="floor-shadow"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="container">
+    <div class="container" id="juegos">
+        <div class="search-box" style="margin: 0 0 30px 0; max-width: 400px; padding: 10px 20px; border: 1px solid #333; background: #151518;">
+            <span style="font-size: 18px; margin-right: 10px;">🔍</span>
+            <input type="text" id="search-input" placeholder="Filtrar juegos..." style="width: 100%; font-size: 16px;">
+        </div>
         <div class="section-title">Juegos Tendencia</div>
         
-        <div class="game-grid">
-            <a href="play.html?game=subway" class="game-card">
-                <div class="game-thumb" style="background: linear-gradient(45deg, #ffcc00, #ff5500);">🏃‍♂️</div>
-                <div class="game-info">
-                    <div class="game-title">Subway Runner Z</div>
-                    <div style="font-size: 12px; color: #888;">Acción / Carreras</div>
-                </div>
-            </a>
 
-            <div class="game-card">
-                <div class="game-thumb" style="background: #2c3e50;">🧩</div>
-                <div class="game-info">
-                    <div class="game-title">Próximamente...</div>
-                    <div style="font-size: 12px; color: #888;">Puzzle</div>
-                </div>
-            </div>
+            <div class="game-grid">
+                <a href="src/html/Minefun.html" class="game-card">
+                    <div class="game-thumb" style="background: linear-gradient(45deg, #00ff33, #0a8923);">🏃‍♂️</div>
+                    <div class="game-info">
+                        <div class="game-title">Minefun.io</div>
+                        <div style="font-size: 12px; color: #888;">Online / Construccion</div>
+                    </div>
+                </a>
+
+                <a href="src/html/survev.html" class="game-card">
+                    <div class="game-thumb" style="background: linear-gradient(45deg, #ff9966, #ff5e62);">🔫</div>
+                    <div class="game-info">
+                        <div class="game-title">Survev.io</div>
+                        <div style="font-size: 12px; color: #888;">Battle Royale / 2D</div>
+                    </div>
+                </a>
             
-            <div class="game-card">
+            <a href="src/html/z-soccer.html" class="game-card">
                 <div class="game-thumb" style="background: #27ae60;">⚽</div>
                 <div class="game-info">
                     <div class="game-title">Z-Soccer</div>
                     <div style="font-size: 12px; color: #888;">Deportes</div>
                 </div>
-            </div>
+            </a>
+
+            <a href="src/html/space-defense.html" class="game-card">
+                <div class="game-thumb" style="background: linear-gradient(135deg, #000046, #1cb5e0);">🚀</div>
+                <div class="game-info">
+                    <div class="game-title">Space Defense</div>
+                    <div style="font-size: 12px; color: #888;">Shooter / Arcade</div>
+                </div>
+            </a>
+
+            <a href="src/html/snake.html" class="game-card">
+                <div class="game-thumb" style="background: linear-gradient(135deg, #11998e, #38ef7d);">🐍</div>
+                <div class="game-info">
+                    <div class="game-title">Snake Z</div>
+                    <div style="font-size: 12px; color: #888;">Clásico</div>
+                </div>
+            </a>
         </div>
     </div>
 
+    <script>
+        // Lógica de Búsqueda
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.game-card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.game-title').innerText.toLowerCase();
+                if(title.includes(term)) card.style.display = 'block';
+                else card.style.display = 'none';
+            });
+        });
+
+        // Sistema de Partículas
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+
+        let particles = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#ff003c';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.2) this.size -= 0.01;
+                if (this.size <= 0.2 || this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 1;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 50; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+    </script>
 </body>
 </html>
