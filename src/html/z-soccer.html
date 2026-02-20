@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Soccer | Arcade-Z</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --accent: #32ff7e;
+            --bg-body: #0f0f11;
+            --bg-nav: #1a1a1d;
+            --bg-card: #252529;
+            --text-main: #ffffff;
+            --text-dim: #9ca3af;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        nav {
+            background: var(--bg-nav);
+            height: 65px;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            gap: 20px;
+            border-bottom: 2px solid #2d2d33;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+            padding: 25px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .viewport-container {
+            background: #000;
+            width: 100%;
+            height: 600px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        #loader {
+            position: absolute;
+            inset: 0;
+            background: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .game-header {
+            background: var(--bg-nav);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: #333338;
+            border: none;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .rec-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 15px;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .rec-thumb {
+            width: 70px; height: 70px;
+            background: #1a1a1d;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px;
+        }
+
+        .ad-real-container {
+            background: #1a1a1d;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body onclick="resumeAudio()">
+
+    <nav>
+        <a href="../../index.html" class="nav-logo">Arcade-Z</a>
+        <div style="flex-grow: 1; text-align: center;">
+            <span style="color: var(--text-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Jugando: Z-Soccer Original</span>
+        </div>
+        <button style="background: var(--accent); border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">MODO PRO</button>
+    </nav>
+
+    <div class="main-content">
+        <div class="game-area">
+            <div id="game-vp" class="viewport-container">
+                <div id="loader">
+                    <div style="width: 40px; height: 40px; border: 4px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="color: var(--accent); margin-top: 15px; font-weight: bold;">PREPARANDO CANCHA...</p>
+                </div>
+                
+                <iframe 
+                    id="game-iframe"
+                    src="../games/soccer.html" 
+                    allow="autoplay; fullscreen; pointer-lock"
+                    sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-scripts allow-same-origin"
+                    onload="hideLoader()">
+                </iframe>
+            </div>
+
+            <div class="game-header">
+                <div>
+                    <h1 style="margin:0; font-size:24px; color:var(--accent);">Z-Soccer</h1>
+                    <p style="margin:5px 0 0; color:var(--text-dim); font-size:14px;">Arcade-Z Originals • Beta v1.0</p>
+                </div>
+                <button class="action-btn" onclick="toggleFull()">⛶ Fullscreen</button>
+            </div>
+
+            <div class="ad-real-container" style="min-height: 100px;">
+                <ins class="adsbygoogle" style="display:block; width: 100%;" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+            <div style="background: var(--bg-nav); padding: 25px; border-radius: 16px;">
+                <h3 style="margin-top:0">Sobre Z-Soccer</h3>
+                <p style="color: var(--text-dim); line-height: 1.6;">Nuestro primer título original. Disfruta de una experiencia de fútbol arcade pura directamente en tu navegador.</p>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div style="color:var(--text-dim); font-size:12px; text-transform:uppercase;">Más Populares</div>
+            <a href="survev.html" class="rec-card">
+                <div class="rec-thumb">🔫</div>
+                <div class="rec-info"><b>Survev.io</b><br><small style="color:var(--accent)">Battle Royale</small></div>
+            </a>
+            <a href="Minefun.html" class="rec-card">
+                <div class="rec-thumb">🧱</div>
+                <div class="rec-info"><b>Minefun.io</b><br><small style="color:var(--accent)">Voxel / 3D</small></div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+        function toggleFull() {
+            const vp = document.getElementById('game-vp');
+            if (!document.fullscreenElement) vp.requestFullscreen();
+            else document.exitFullscreen();
+        }
+        function resumeAudio() {
+            const iframe = document.getElementById('game-iframe');
+            if (iframe) iframe.contentWindow.postMessage('resumeAudio', '*');
+        }
+    </script>
+</body>
+</html>

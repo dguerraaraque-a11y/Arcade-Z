@@ -142,6 +142,77 @@
             <span style="background: var(--gradient); padding: 8px 15px; border-radius: 20px;">Premium</span>
         </div>
     </nav>
+	<div id="cookie-banner" class="cookie-box">
+    <div class="cookie-content">
+        <p>🎮 <b>Control de Misión:</b> Usamos cookies para guardar tus récords y mejorar tu experiencia en Arcade-Z. ¿Aceptas el desafío?</p>
+        <div class="cookie-btns">
+            <button onclick="acceptCookies()" class="cookie-btn accept">ACEPTAR</button>
+            <button onclick="acceptCookies()" class="cookie-btn close">CERRAR</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cookie-box {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1a1d;
+        border: 2px solid var(--accent);
+        border-radius: 12px;
+        padding: 20px;
+        z-index: 9999;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(50, 255, 126, 0.2);
+        display: none; /* Se activa con JS */
+    }
+
+    .cookie-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .cookie-btns { display: flex; gap: 10px; }
+
+    .cookie-btn {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .accept { background: var(--accent); color: #000; }
+    .accept:hover { background: #fff; transform: scale(1.05); }
+    .close { background: #333; color: #fff; }
+
+    @keyframes slideUp {
+        from { bottom: -100px; opacity: 0; }
+        to { bottom: 20px; opacity: 1; }
+    }
+</style>
+
+<script>
+    // Mostrar banner si no han aceptado
+    if (!localStorage.getItem('cookies-aceptadas')) {
+        const banner = document.getElementById('cookie-banner');
+        banner.style.display = 'block';
+        banner.style.animation = 'slideUp 0.5s forwards';
+    }
+
+    function acceptCookies() {
+        localStorage.setItem('cookies-aceptadas', 'true');
+        document.getElementById('cookie-banner').style.display = 'none';
+        // Esto ayuda a desbloquear el audio del juego
+        if (typeof resumeAudio === "function") resumeAudio();
+    }
+</script>
 
     <div class="hero">
         <h1>¡Bienvenido a la Zona Z!</h1>
