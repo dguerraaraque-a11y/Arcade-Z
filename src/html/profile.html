@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Jugador | Arcade-Z</title>
+    <style>
+        :root {
+            --accent: #00f2ff; /* Neon Blue */
+            --secondary: #ff003c; /* Neon Pink */
+            --bg-body: #050505;
+            --bg-nav: rgba(20, 20, 25, 0.9);
+            --bg-card: rgba(30, 30, 35, 0.6);
+            --text-main: #ffffff;
+            --text-dim: #9ca3af;
+            --gradient: linear-gradient(135deg, #00f2ff 0%, #0072ff 100%);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Background Animation Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        nav {
+            background: var(--bg-nav);
+            height: 65px;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            gap: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 15px var(--accent);
+        }
+
+        .nav-profile-container {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 15px 5px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+        .nav-profile-container:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+        }
+        .nav-user-name {
+            font-weight: 700; font-size: 14px; color: white; letter-spacing: 0.5px;
+        }
+        #nav-avatar {
+            border-radius: 50%; border: 2px solid var(--accent);
+            background: #111; box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        /* --- PROFILE SIDEBAR --- */
+        .profile-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: fit-content;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: #222;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 60px;
+            border: 4px solid var(--accent);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .avatar:hover { transform: scale(1.05); }
+
+        .edit-btn {
+            position: absolute; bottom: 0; right: 0;
+            background: var(--secondary); color: white;
+            border: none; width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; font-size: 18px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 10px var(--secondary);
+            transition: 0.2s;
+        }
+        .edit-btn:hover { transform: scale(1.1); background: white; color: var(--secondary); }
+        .name-edit-btn {
+            position: absolute; bottom: 0; right: 0;
+            background: var(--secondary); color: white;
+            border: none; width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; font-size: 18px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 10px var(--secondary);
+            transition: 0.2s;
+        }
+        .edit-btn:hover { transform: scale(1.1); background: white; color: var(--secondary); }
+
+        .player-name-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-name { font-size: 24px; font-weight: 800; margin: 10px 0 5px; color: white; padding-right: 25px; }
+        .player-title { color: var(--text-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+
+        .level-bar-container { width: 100%; margin-top: 10px; }
+        .level-info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: #aaa; }
+        .progress-track { width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 1s ease-out; }
+
+        /* --- STATS SECTION --- */
+        .content-area h1 {
+            font-size: 28px; margin: 0 0 20px 0;
+            border-left: 5px solid var(--accent); padding-left: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s, border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--gradient);
+        }
+
+        .stat-card h2 {
+            margin-top: 0;
+            color: white;
+            font-size: 18px;
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 20px;
+        }
+        .fav-star {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 22px;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .fav-star.is-favorite { color: gold; transform: scale(1.2); }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-item:last-child { border-bottom: none; }
+
+        .stat-label { color: var(--text-dim); }
+        .stat-value { font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace; font-size: 16px; }
+
+        /* --- AVATAR EDITOR MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s;
+        }
+
+        .editor-box {
+            background: #151518; border: 1px solid var(--accent);
+            padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;
+            text-align: center; box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+        }
+
+        .editor-preview {
+            width: 100px; height: 100px; margin: 20px auto;
+            border-radius: 50%; border: 4px solid var(--accent);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 40px; background: #222;
+        }
+
+        .option-group { margin-bottom: 20px; text-align: left; }
+        .option-label { font-size: 12px; color: #888; margin-bottom: 8px; display: block; text-transform: uppercase; }
+        
+        .color-grid, .icon-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .color-btn:hover, .color-btn.selected { transform: scale(1.2); border-color: white; }
+
+        .icon-btn { 
+            width: 50px; height: 50px; background: #222; border-radius: 8px; 
+            display: flex; justify-content: center; align-items: center; font-size: 20px;
+            cursor: pointer; border: 1px solid #444; transition: 0.2s;
+            padding: 2px;
+        }
+        .icon-btn:hover, .icon-btn.selected { background: var(--accent); color: black; border-color: var(--accent); }
+
+        .save-btn {
+            background: var(--gradient); border: none; color: white;
+            padding: 12px 30px; border-radius: 30px; font-weight: bold;
+            cursor: pointer; font-size: 16px; margin-top: 10px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+            transition: 0.3s;
+        }
+        .save-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 242, 255, 0.6); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Input para el nombre */
+        .name-input {
+            background: #222; border: 1px solid #444; color: white;
+            padding: 10px; border-radius: 8px; width: 80%;
+            font-size: 18px; text-align: center; margin-bottom: 20px;
+            outline: none; transition: 0.3s;
+        }
+        .name-input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 242, 255, 0.2); }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <nav>
+        <a href="../../index.html" class="nav-logo">Arcade-Z</a>
+        <div class="nav-profile-container">
+            <span class="nav-user-name">JUGADOR</span>
+            <canvas id="nav-avatar" width="40" height="40"></canvas>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Sidebar Profile -->
+        <div class="profile-card">
+            <div class="avatar-container">
+                <canvas id="main-avatar" class="avatar" width="140" height="140"></canvas>
+                <button class="edit-btn" onclick="openEditor()">✏️</button>
+            </div>
+            <div class="player-name-container">
+                <div class="player-name">JUGADOR</div>
+                <button class="name-edit-btn" onclick="openNameEditor()">✏️</button>
+            </div>
+            <div class="player-title">Cadete Espacial</div>
+            
+            <div class="level-bar-container">
+                <div class="level-info">
+                    <span>Nivel 1</span>
+                    <span id="xp-text">0 / 1000 XP</span>
+                </div>
+                <div class="progress-track">
+                    <div id="xp-bar" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <h1>Estadísticas de Juego</h1>
+            <div id="stats-grid" class="stats-grid">
+                <!-- Las estadísticas se cargarán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Avatar Editor Modal -->
+    <div id="editor-modal" class="modal-overlay" onclick="if(event.target === this) closeEditor()">
+        <div class="editor-box">
+            <h2 style="margin-top:0; color:white;">Personalizar Avatar</h2>
+            
+            <canvas id="editor-preview" class="editor-preview" width="92" height="92"></canvas>
+
+            <div class="option-group">
+                <span class="option-label">Color de Fondo</span>
+                <div class="color-grid" id="color-options"></div>
+            </div>
+
+            <div class="option-group">
+                <span class="option-label">Icono</span>
+                <div class="icon-grid" id="icon-options"></div>
+            </div>
+
+            <button class="save-btn" onclick="saveAvatar()">GUARDAR CAMBIOS</button>
+        </div>
+    </div>
+
+    <!-- Name Editor Modal -->
+    <div id="name-modal" class="modal-overlay" onclick="if(event.target === this) closeNameEditor()">
+        <div class="editor-box">
+            <h2 style="margin-top:0; color:white;">Cambiar Nombre</h2>
+            <input type="text" id="new-username" class="name-input" placeholder="Nuevo nombre..." maxlength="15">
+            <button class="save-btn" onclick="saveName()">CONFIRMAR</button>
+        </div>
+    </div>
+
+    <script src="../js/avatar.js"></script>
+    <script>
+        // --- BACKGROUND ANIMATION ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+        
+        // Mouse interaction
+        let mouse = { x: null, y: null, radius: 100 };
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = '#00f2ff';
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+
+                // Interacción con el mouse (repulsión suave)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius + this.size) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 3;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 3;
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 3;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 3;
+                }
+
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 1) - 0.5;
+                let directionY = (Math.random() * 1) - 0.5;
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, '#00f2ff'));
+            }
+        }
+
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateBg() {
+            requestAnimationFrame(animateBg);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
+        }
+        
+        initParticles();
+        animateBg();
+
+        // --- UNIFIED PROFILE & GAME DATA ---
+        const profileNameEl = document.querySelector('.player-name');
+        const navNameEl = document.querySelector('.nav-user-name');
+        const grid = document.getElementById('stats-grid');
+        
+        const defaultProfile = {
+            name: 'JUGADOR',
+            favorites: []
+        };
+        const loadedProfile = JSON.parse(localStorage.getItem('arcadeProfile')) || {};
+        let profile = { ...defaultProfile, ...loadedProfile };
+        let totalScore = 0;
+        let totalPlayTime = 0; // in seconds
+
+        // --- AVATAR SYSTEM ---
+        const defaultAvatar = { color: '#222', icon: 'robot' };
+        const loadedAvatar = JSON.parse(localStorage.getItem('arcadeAvatar')) || {};
+        let currentAvatar = { ...defaultAvatar, ...loadedAvatar };
+        
+        // Options
+        const colors = ['#222', '#ff003c', '#00f2ff', '#32ff7e', '#ffd700', '#9b59b6', '#e67e22']; // Background colors
+        const icons = ['robot', 'alien', 'ghost', 'cat', 'skull', 'pumpkin', 'ninja', 'devil', 'wizard', 'pig', 'dog', 'rabbit', 'bear', 'panda'];
+
+        let tempAvatar = { ...currentAvatar };
+        let avatarInteraction = { hover: false, isHit: false, hitTime: 0, clickCount: 0, lastClick: 0, lastMove: Date.now() };
+
+        let animationFrameId;
+
+        function renderMainAvatar(config) {
+            const canvas = document.getElementById('main-avatar');
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            let particles = [];
+
+            // Setup Event Listeners for Interaction
+            if (!canvas.dataset.interactive) {
+                canvas.dataset.interactive = "true";
+                canvas.style.cursor = "pointer";
+                canvas.addEventListener('mouseenter', () => avatarInteraction.hover = true);
+                canvas.addEventListener('mouseleave', () => avatarInteraction.hover = false);
+                canvas.addEventListener('mousemove', () => avatarInteraction.lastMove = Date.now());
+                canvas.addEventListener('mousedown', (e) => {
+                    avatarInteraction.isHit = true;
+                    avatarInteraction.hitTime = Date.now();
+                    avatarInteraction.lastMove = Date.now();
+                    
+                    // Click Count Logic
+                    const now = Date.now();
+                    if (now - avatarInteraction.lastClick < 500) avatarInteraction.clickCount++;
+                    else avatarInteraction.clickCount = 1;
+                    avatarInteraction.lastClick = now;
+
+                    // Spawn Particles
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    for(let i=0; i<15; i++) {
+                        particles.push({
+                            x: x, y: y,
+                            vx: (Math.random() - 0.5) * 15,
+                            vy: (Math.random() - 0.5) * 15,
+                            size: Math.random() * 6 + 2,
+                            life: 1.0,
+                            color: config.color === '#222' ? '#00f2ff' : config.color
+                        });
+                    }
+                });
+            }
+
+            function animate() {
+                // Determine Emotion
+                let emotion = 'happy';
+                const now = Date.now();
+                if (now - avatarInteraction.lastMove > 5000) emotion = 'tired';
+                else if (avatarInteraction.clickCount > 5) emotion = 'sad';
+                else if (avatarInteraction.isHit) emotion = 'angry';
+
+                // Update Particles
+                particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; });
+                particles = particles.filter(p => p.life > 0);
+
+                renderAvatar(canvas, config, now, avatarInteraction, particles, emotion);
+                animationFrameId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        let navAnimationFrameId;
+        function renderNavAvatar(config) {
+            const canvas = document.getElementById('nav-avatar');
+            if (!canvas) return;
+            if (navAnimationFrameId) cancelAnimationFrame(navAnimationFrameId);
+
+            function animate() {
+                renderAvatar(canvas, config, Date.now(), null, [], 'happy');
+                navAnimationFrameId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        function openEditor() {
+            document.getElementById('editor-modal').style.display = 'flex';
+            tempAvatar = { ...currentAvatar };
+            renderEditor();
+        }
+
+        function closeEditor() {
+            document.getElementById('editor-modal').style.display = 'none';
+        }
+
+        function renderEditor() {
+            const previewCanvas = document.getElementById('editor-preview');
+            // Render static preview or animated
+            renderAvatar(previewCanvas, tempAvatar, Date.now());
+            
+            // Keep updating preview animation
+            if(window.editorInterval) cancelAnimationFrame(window.editorInterval);
+            function loop() {
+                if(document.getElementById('editor-modal').style.display === 'none') return;
+                renderAvatar(previewCanvas, tempAvatar, Date.now());
+                window.editorInterval = requestAnimationFrame(loop);
+            }
+            loop();
+
+            const colorContainer = document.getElementById('color-options');
+            colorContainer.innerHTML = colors.map(c => `
+                <div class="color-btn ${tempAvatar.color === c ? 'selected' : ''}" 
+                     style="background:${c}" 
+                     onclick="selectColor('${c}')"></div>
+            `).join('');
+
+            const iconContainer = document.getElementById('icon-options');
+            iconContainer.innerHTML = icons.map(iconName => `
+                <div class="icon-btn ${tempAvatar.icon === iconName ? 'selected' : ''}" 
+                     onclick="selectIcon('${iconName}')">
+                     <canvas width="40" height="40" id="btn-canvas-${iconName}"></canvas>
+                </div>
+            `).join('');
+
+            icons.forEach(iconName => {
+                const c = document.getElementById(`btn-canvas-${iconName}`);
+                renderAvatar(c, { color: 'transparent', icon: iconName }, Date.now());
+            });
+        }
+
+        function selectColor(c) {
+            tempAvatar.color = c;
+            // No need to call renderEditor, loop handles it, but we update selection UI
+            renderEditor();
+        }
+
+        function selectIcon(i) {
+            tempAvatar.icon = i;
+            renderEditor();
+        }
+
+        function saveAvatar() {
+            currentAvatar = { ...tempAvatar };
+            localStorage.setItem('arcadeAvatar', JSON.stringify(currentAvatar));
+            renderMainAvatar(currentAvatar);
+            renderNavAvatar(currentAvatar);
+            closeEditor();
+        }
+
+    </script>
+</body>
+</html>

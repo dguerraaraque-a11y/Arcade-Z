@@ -211,10 +211,18 @@
         function gameOver() {
             isPlaying = false;
             clearInterval(intervalId);
+
+            const snakeData = JSON.parse(localStorage.getItem('snakeData')) || { highScore: 0 };
+            if (score > snakeData.highScore) {
+                snakeData.highScore = score;
+                localStorage.setItem('snakeData', JSON.stringify(snakeData));
+            }
+
             ui.style.display = 'flex';
             ui.innerHTML = `
                 <div class="ui-title" style="color: #ff003c">GAME OVER</div>
-                <div style="font-size: 20px; margin-bottom: 20px;">Score: ${score}</div>
+                <div style="font-size: 20px; margin-bottom: 10px;">Score: ${score}</div>
+                <div style="font-size: 14px; color: #888; margin-bottom: 20px;">Mejor: ${snakeData.highScore}</div>
                 <button class="ui-btn" onclick="startGame()">Reintentar</button>
             `;
         }

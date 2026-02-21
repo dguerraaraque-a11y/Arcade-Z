@@ -259,6 +259,15 @@
                 iframe.contentWindow.postMessage('resumeAudio', '*');
             }
         }
+
+        // --- SISTEMA DE GUARDADO DE TIEMPO ---
+        let survevData = JSON.parse(localStorage.getItem('survevData')) || { playTimeInSeconds: 0 };
+        
+        setInterval(() => {
+            survevData.playTimeInSeconds++;
+            // Guardar cada 10 segundos
+            if(survevData.playTimeInSeconds % 10 === 0) localStorage.setItem('survevData', JSON.stringify(survevData));
+        }, 1000);
     </script>
 </body>
 </html>
