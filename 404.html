@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA CAÍDO | 404</title>
+    <title>GAME OVER | 404</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@900&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap');
-
         :root {
-            --neon: #00f2ff;
-            --dark: #020205;
-            --red: #ff003c;
+            --neon-blue: #00f2ff;
+            --neon-pink: #ff003c;
+            --neon-green: #32ff7e;
+            --bg-dark: #050505;
         }
 
         body, html {
@@ -18,203 +18,148 @@
             padding: 0;
             width: 100%;
             height: 100vh;
-            background-color: var(--dark);
-            color: var(--neon);
-            font-family: 'Fira Code', monospace;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Press Start 2P', cursive;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
         }
 
-        /* --- FONDO DE TÚNEL ESPACIAL --- */
-        .stars-container {
+        /* --- CRT EFFECT --- */
+        .crt-overlay {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #111 0%, #000 100%);
-            perspective: 800px;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            50% { opacity: 1.0; }
+            100% { opacity: 0.9; }
+        }
+
+        /* --- BACKGROUND --- */
+        .grid-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(transparent 0%, rgba(0, 242, 255, 0.1) 2%, transparent 3%),
+                linear-gradient(90deg, transparent 0%, rgba(0, 242, 255, 0.1) 2%, transparent 3%);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 2s linear infinite;
             z-index: 1;
         }
 
-        .tunnel {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
-            animation: tunnel-move 8s linear infinite;
-        }
-
-        .wall {
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            top: -50%;
-            left: -50%;
-            background-image: 
-                linear-gradient(var(--neon) 1px, transparent 1px),
-                linear-gradient(90deg, var(--neon) 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.1;
-            transform: rotateX(90deg) translateZ(-500px);
-        }
-
-        .wall-bottom { transform: rotateX(-90deg) translateZ(-500px); }
-
-        @keyframes tunnel-move {
-            0% { transform: translateZ(0px); }
-            100% { transform: translateZ(500px); }
+        @keyframes gridMove {
+            from { background-position: 0 0; }
+            to { background-position: 0 50px; }
         }
 
         /* --- UI DE ERROR --- */
         .error-box {
             position: relative;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 40px;
-            border-left: 5px solid var(--red);
-            box-shadow: 20px 20px 0px rgba(0, 242, 255, 0.1);
-            max-width: 600px;
-            width: 90%;
-            backdrop-filter: blur(10px);
+            z-index: 10; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .status-code {
-            font-size: 80px;
-            font-weight: bold;
-            color: var(--red);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            text-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
+        .glitch-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 120px; font-weight: 900;
+            color: var(--neon-pink);
+            text-shadow: 4px 4px var(--neon-blue);
+            position: relative;
+            animation: glitch 1s infinite;
         }
 
-        .status-code span {
-            font-size: 20px;
-            background: var(--red);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
+        .glitch-title::before, .glitch-title::after {
+            content: '404'; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .glitch-title::before {
+            color: var(--neon-blue); z-index: -1;
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch-title::after {
+            color: var(--neon-green); z-index: -2;
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
         }
 
-        .console-text {
-            margin-top: 20px;
-            line-height: 1.6;
-            min-height: 100px;
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); transform: translate(-2px,0); }
+            100% { clip-path: inset(60% 0 10% 0); transform: translate(2px,0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); transform: translate(2px,0); }
+            100% { clip-path: inset(80% 0 5% 0); transform: translate(-2px,0); }
         }
 
-        .cursor {
-            display: inline-block;
-            width: 10px;
-            height: 20px;
-            background: var(--neon);
-            animation: blink 0.8s infinite;
-            vertical-align: middle;
+        .subtitle {
+            font-size: 24px; color: #fff; margin-top: 20px;
+            text-transform: uppercase; letter-spacing: 2px;
+            animation: blink 1s infinite;
         }
 
-        @keyframes blink {
-            50% { opacity: 0; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .message {
+            color: #aaa; font-family: 'Fira Code', monospace; font-size: 14px;
+            margin: 30px 0; max-width: 500px; line-height: 1.6;
+            background: rgba(0,0,0,0.7); padding: 20px; border: 1px solid #333;
         }
 
-        .nav-buttons {
-            margin-top: 30px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .btn {
-            text-decoration: none;
-            color: var(--neon);
-            border: 1px solid var(--neon);
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s;
+        .action-btn {
+            background: transparent; color: var(--neon-blue);
+            border: 2px solid var(--neon-blue); padding: 15px 30px;
+            font-family: 'Press Start 2P', cursive; font-size: 14px;
+            cursor: pointer; text-decoration: none; transition: 0.2s;
+            box-shadow: 0 0 10px var(--neon-blue);
             text-transform: uppercase;
         }
-
-        .btn:hover {
-            background: var(--neon);
-            color: var(--dark);
-            box-shadow: 0 0 20px var(--neon);
+        .action-btn:hover {
+            background: var(--neon-blue); color: #000;
+            box-shadow: 0 0 30px var(--neon-blue); transform: scale(1.1);
         }
 
-        .btn-red {
-            color: var(--red);
-            border-color: var(--red);
+        .ghost {
+            font-size: 60px; margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
         }
-
-        .btn-red:hover {
-            background: var(--red);
-            color: white;
-            box-shadow: 0 0 20px var(--red);
-        }
-
-        /* Escaneo de pantalla de TV vieja */
-        .scanline {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 51%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 20;
-        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
     </style>
 </head>
 <body>
 
-    <div class="scanline"></div>
-    
-    <div class="stars-container">
-        <div class="tunnel">
-            <div class="wall"></div>
-            <div class="wall wall-bottom"></div>
-        </div>
-    </div>
+    <div class="crt-overlay"></div>
+    <div class="grid-bg"></div>
 
     <div class="error-box">
-        <h1 class="status-code">404 <span>CRITICAL ERROR</span></h1>
+        <div class="ghost">👻</div>
+        <div class="glitch-title">404</div>
+        <div class="subtitle">GAME OVER</div>
         
-        <div class="console-text" id="typewriter">
-            </div>
-
-        <div class="nav-buttons">
-            <a href="index.html" class="btn">Reiniciar Sistema</a>
-            <a href="javascript:history.back()" class="btn btn-red">Volver Atrás</a>
+        <div class="message">
+            > ERROR: NIVEL NO ENCONTRADO<br>
+            > EL SECTOR AL QUE INTENTAS ACCEDER HA SIDO DESTRUIDO O NO EXISTE.<br>
+            > INSERTA MONEDA PARA CONTINUAR.
         </div>
+
+        <a href="index.html" class="action-btn">INSERT COIN (HOME)</a>
     </div>
 
-    <script>
-        const textElement = document.getElementById('typewriter');
-        const message = [
-            "> Localizando coordenadas...",
-            "> ERROR: Sector no encontrado en el servidor Arcade-Z.",
-            "> Los datos han sido purgados o nunca existieron.",
-            "> Sugerencia: Regresa al puerto seguro antes de la desconexión."
-        ];
-
-        let lineIndex = 0;
-        let charIndex = 0;
-
-        function type() {
-            if (lineIndex < message.length) {
-                if (charIndex < message[lineIndex].length) {
-                    textElement.innerHTML += message[lineIndex].charAt(charIndex);
-                    charIndex++;
-                    setTimeout(type, 3000 / (message[lineIndex].length * 10)); // Velocidad de escritura
-                } else {
-                    textElement.innerHTML += "<br>";
-                    lineIndex++;
-                    charIndex = 0;
-                    setTimeout(type, 500);
-                }
-            } else {
-                textElement.innerHTML += '<span class="cursor"></span>';
-            }
-        }
-
-        window.onload = type;
-    </script>
 </body>
 </html>

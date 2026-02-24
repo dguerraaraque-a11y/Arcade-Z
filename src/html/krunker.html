@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krunker.io | Arcade-Z</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+    <style>
+        :root { --accent: #f1c40f; --bg-nav: #1a1a1d; --text-dim: #9ca3af; --bg-card: #252529; }
+        body { margin: 0; background-color: #0f0f11; color: white; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        nav { background: var(--bg-nav); height: 65px; display: flex; align-items: center; padding: 0 25px; gap: 20px; border-bottom: 2px solid #333; }
+        .nav-logo { font-size: 26px; font-weight: 900; color: #00f2ff; text-decoration: none; text-transform: uppercase; }
+        
+        .nav-profile-container { margin-left: auto; display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-user-name { font-weight: 700; font-size: 14px; }
+        
+        .main-content { display: grid; grid-template-columns: 1fr 300px; gap: 25px; padding: 25px; flex-grow: 1; overflow-y: auto; }
+        
+        .game-area { display: flex; flex-direction: column; gap: 20px; }
+
+        .viewport-container { background: #000; width: 100%; height: 600px; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        .game-header { background: var(--bg-nav); padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .action-btn { background: #333338; border: none; color: white; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .action-btn:hover { background: #44444a; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .sidebar-title { color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+
+        .ad-real-container { background: #1a1a1d; border-radius: 12px; overflow: hidden; border: 1px solid #333; display: flex; justify-content: center; align-items: center; width: 100%; min-width: 300px; }
+        
+        /* Scrollbar */
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../../index.html" class="nav-logo">Arcade-Z</a>
+        <div style="flex-grow: 1; text-align: center;">
+            <span style="color: var(--text-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Jugando: Krunker.io</span>
+        </div>
+        <div class="nav-profile-container">
+            <span class="nav-user-name">Cargando...</span>
+            <canvas id="nav-avatar" width="40" height="40"></canvas>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="game-area">
+            <div id="game-vp" class="viewport-container">
+                <iframe src="https://krunker.io" allow="autoplay; fullscreen; pointer-lock; microphone"></iframe>
+            </div>
+            
+            <div class="game-header">
+                <div class="title-box">
+                    <h1 style="margin:0; font-size:24px; color:var(--accent);">Krunker.io</h1>
+                    <p style="margin:5px 0 0; color:var(--text-dim); font-size:14px;">Arcade-Z Network • FPS Competitivo</p>
+                </div>
+                <div class="game-actions">
+                    <button class="action-btn">👍 45k</button>
+                    <button class="action-btn" onclick="toggleFull()">⛶ Fullscreen</button>
+                </div>
+            </div>
+
+            <div class="ad-real-container" style="min-height: 100px;">
+                <ins class="adsbygoogle" style="display:block; width: 100%;" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+            <div style="background: var(--bg-nav); padding: 25px; border-radius: 16px;">
+                <h3 style="margin-top:0">Sobre Krunker.io</h3>
+                <p style="color: var(--text-dim); line-height: 1.6;">Krunker.io es un frenético shooter en primera persona (FPS) con gráficos estilo voxel. Únete a partidas multijugador instantáneas, personaliza tu clase y demuestra tu puntería en una variedad de mapas y modos de juego. ¡La velocidad y los reflejos son clave!</p>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-title">Recomendados para ti</div>
+            <!-- Se llena con global.js -->
+        </div>
+    </div>
+
+    <script src="../js/avatar.js"></script>
+    <script src="../js/global.js"></script>
+    <script>
+        function toggleFull() {
+            const vp = document.getElementById('game-vp');
+            if (!document.fullscreenElement) vp.requestFullscreen();
+            else document.exitFullscreen();
+        }
+    </script>
+</body>
+</html>

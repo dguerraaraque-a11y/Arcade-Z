@@ -1,4 +1,4 @@
-function renderAvatar(canvasEl, config, time = 0, interaction = null, particles = [], emotion = 'happy') {
+function renderAvatar(canvasEl, config, time = 0, interaction = null, particles = [], emotion = 'happy', mousePos = null) {
     const ctx = canvasEl.getContext('2d');
     const w = canvasEl.width; 
     const h = canvasEl.height;
@@ -28,6 +28,17 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
     ctx.translate(w / 2, h / 2); // Center the drawing
     const scale = w / 100; // Scale drawing based on canvas size
     ctx.scale(scale, scale);
+
+    // --- SEGUIMIENTO CON RATÓN ---
+    let eyeOffsetX = 0;
+    let eyeOffsetY = 0;
+    if (mousePos && mousePos.x !== null) {
+        const rect = canvasEl.getBoundingClientRect();
+        const canvasCenterX = rect.left + rect.width / 2;
+        const canvasCenterY = rect.top + rect.height / 2;
+        eyeOffsetX = Math.max(-5, Math.min(5, (mousePos.x - canvasCenterX) / 20));
+        eyeOffsetY = Math.max(-5, Math.min(5, (mousePos.y - canvasCenterY) / 20));
+    }
 
     // --- INTERACTION ANIMATIONS ---
     if (interaction) {
@@ -60,10 +71,10 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
     if (emotion === 'sad') ctx.translate(Math.random()*2-1, Math.random()*2-1);
 
     switch (safeConfig.icon) {
-        case 'alien': drawAlien(ctx, time, emotion); break;
-        case 'ghost': drawGhost(ctx, time, emotion); break;
-        case 'cat': drawCat(ctx, time, emotion); break;
-        case 'skull': drawSkull(ctx, time, emotion); break;
+        case 'alien': drawAlien(ctx, time, emotion, eyeOffsetX, eyeOffsetY); break;
+        case 'ghost': drawGhost(ctx, time, emotion, eyeOffsetX, eyeOffsetY); break;
+        case 'cat': drawCat(ctx, time, emotion, eyeOffsetX, eyeOffsetY); break;
+        case 'skull': drawSkull(ctx, time, emotion, eyeOffsetX, eyeOffsetY); break;
         case 'pumpkin': drawPumpkin(ctx, time, emotion); break;
         case 'ninja': drawNinja(ctx, time, emotion); break;
         case 'devil': drawDevil(ctx, time, emotion); break;
@@ -74,7 +85,7 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
         case 'bear': drawBear(ctx, time, emotion); break;
         case 'panda': drawPanda(ctx, time, emotion); break;
         case 'robot':
-        default: drawRobot(ctx, time, emotion); break;
+        default: drawRobot(ctx, time, emotion, eyeOffsetX, eyeOffsetY); break;
     }
     ctx.restore();
 
@@ -89,7 +100,7 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
     }
 }
 
-function drawRobot(ctx, time, emotion) {
+function drawRobot(ctx, time, emotion, eyeX = 0, eyeY = 0) {
     // Cuerpo
     const bodyGrad = ctx.createLinearGradient(-30, -35, 30, 45);
     bodyGrad.addColorStop(0, '#bdc3c7');
@@ -114,6 +125,7 @@ function drawRobot(ctx, time, emotion) {
 
     // Eyes
     let blink = Math.sin(time / 1500) > 0.95;
+    let wink = emotion === 'wink' && Math.sin(time / 1000) > 0;
     if (emotion === 'tired') blink = Math.sin(time / 3000) > 0.5; // Slow blink
     
     ctx.fillStyle = blink ? '#333' : (emotion === 'angry' ? '#ff003c' : '#00f2ff');
@@ -132,10 +144,15 @@ function drawRobot(ctx, time, emotion) {
             ctx.fillStyle = '#00f2ff';
             const tearY = (time % 1000) / 40;
             ctx.fillRect(-12, -5 + tearY, 4, 6); ctx.fillRect(8, -5 + tearY, 4, 6);
-        } else {
-            ctx.arc(-10, -8, 5, 0, Math.PI * 2);
-            ctx.arc(10, -8, 5, 0, Math.PI * 2);
+        } else if (emotion === 'surprised') {
+            ctx.arc(-10 + eyeX, -8 + eyeY, 7, 0, Math.PI * 2);
+            ctx.arc(10 + eyeX, -8 + eyeY, 7, 0, Math.PI * 2);
             ctx.fill();
+        } else {
+            if (!wink) {
+                ctx.beginPath(); ctx.arc(-10 + eyeX, -8 + eyeY, 5, 0, Math.PI * 2); ctx.fill();
+            } else { ctx.fillRect(-14 + eyeX, -8 + eyeY, 8, 2); }
+            ctx.beginPath(); ctx.arc(10 + eyeX, -8 + eyeY, 5, 0, Math.PI * 2); ctx.fill();
         }
         // Mouth
         ctx.strokeStyle = '#00f2ff'; ctx.lineWidth = 2;
@@ -143,6 +160,8 @@ function drawRobot(ctx, time, emotion) {
             ctx.beginPath(); ctx.arc(0, 8, 8, 0, Math.PI); ctx.stroke();
         } else if (emotion === 'sad') {
             ctx.beginPath(); ctx.arc(0, 12, 8, Math.PI, 0, true); ctx.stroke();
+        } else if (emotion === 'surprised') {
+            ctx.beginPath(); ctx.arc(0, 10, 5, 0, Math.PI*2); ctx.fill();
         }
 
         ctx.fill();
@@ -166,7 +185,7 @@ function drawRobot(ctx, time, emotion) {
     ctx.beginPath(); ctx.arc(0, -50 + antY, 2, 0, Math.PI * 2); ctx.fill();
 }
 
-function drawAlien(ctx, time, emotion) {
+function drawAlien(ctx, time, emotion, eyeX = 0, eyeY = 0) {
     // Head
     const skinGrad = ctx.createRadialGradient(-10, -10, 5, 0, 0, 40);
     skinGrad.addColorStop(0, '#2ecc71');
@@ -195,8 +214,10 @@ function drawAlien(ctx, time, emotion) {
 
         // Mouth
         ctx.strokeStyle = 'black'; ctx.lineWidth = 2;
-        if (emotion === 'happy') {
+        if (emotion === 'happy' || emotion === 'wink') {
             ctx.beginPath(); ctx.arc(0, 15, 10, 0, Math.PI); ctx.stroke();
+        } else if (emotion === 'surprised') {
+            ctx.beginPath(); ctx.arc(0, 18, 7, 0, Math.PI*2); ctx.stroke();
         } else if (emotion === 'sad' || emotion === 'angry') {
             ctx.beginPath(); ctx.arc(0, 20, 10, Math.PI, 0, true); ctx.stroke();
         } else if (emotion === 'tired') {
@@ -214,8 +235,8 @@ function drawAlien(ctx, time, emotion) {
         // Shine
         ctx.fillStyle = 'white';
         if (emotion !== 'angry') {
-            ctx.beginPath(); ctx.arc(-12, -8, 3, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(16, -8, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(-12 + eyeX/2, -8 + eyeY/2, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(16 + eyeX/2, -8 + eyeY/2, 3, 0, Math.PI*2); ctx.fill();
         }
     } else {
         ctx.strokeStyle = 'black'; ctx.lineWidth = 2;
@@ -224,7 +245,7 @@ function drawAlien(ctx, time, emotion) {
     }
 }
 
-function drawGhost(ctx, time, emotion) {
+function drawGhost(ctx, time, emotion, eyeX = 0, eyeY = 0) {
     // Body
     const grad = ctx.createLinearGradient(0, -30, 0, 30);
     grad.addColorStop(0, '#ffffff');
@@ -248,22 +269,22 @@ function drawGhost(ctx, time, emotion) {
     ctx.fillStyle = 'black';
     if (emotion === 'angry') {
         ctx.fillStyle = '#ff003c';
-        ctx.beginPath(); ctx.arc(-10, -5, 5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(10, -5, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-10 + eyeX, -5 + eyeY, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(10 + eyeX, -5 + eyeY, 5, 0, Math.PI * 2); ctx.fill();
     } else if (emotion === 'sad') {
         ctx.fillStyle = '#00f2ff'; // Blue eyes
-        ctx.beginPath(); ctx.arc(-10, -5, 4, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(10, -5, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-10 + eyeX, -5 + eyeY, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(10 + eyeX, -5 + eyeY, 4, 0, Math.PI * 2); ctx.fill();
         ctx.fillRect(-12, -5, 4, 15); ctx.fillRect(8, -5, 4, 15); // Tears
     } else {
         ctx.beginPath();
-        ctx.arc(-10, -5, 4, 0, Math.PI * 2);
-        ctx.arc(10, -5, 4, 0, Math.PI * 2);
+        ctx.arc(-10 + eyeX, -5 + eyeY, 4, 0, Math.PI * 2);
+        ctx.arc(10 + eyeX, -5 + eyeY, 4, 0, Math.PI * 2);
         ctx.fill();
     }
 
     // Mouth
-    if (emotion === 'happy' || emotion === 'tired') {
+    if (emotion === 'happy' || emotion === 'tired' || emotion === 'surprised') {
         ctx.beginPath(); ctx.arc(0, 10, 5, 0, Math.PI*2); ctx.fill();
     } else if (emotion === 'sad') {
         ctx.beginPath(); ctx.arc(0, 15, 8, Math.PI, 0, true); ctx.stroke();
@@ -277,7 +298,7 @@ function drawGhost(ctx, time, emotion) {
     ctx.beginPath(); ctx.arc(18, 5, 5, 0, Math.PI*2); ctx.fill();
 }
 
-function drawCat(ctx, time, emotion) {
+function drawCat(ctx, time, emotion, eyeX = 0, eyeY = 0) {
     // Fur
     const furGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, 35);
     furGrad.addColorStop(0, '#e67e22');
@@ -313,8 +334,8 @@ function drawCat(ctx, time, emotion) {
             ctx.moveTo(-16, -2); ctx.lineTo(-8, 2); ctx.lineTo(-16, 6); ctx.fill();
             ctx.moveTo(16, -2); ctx.lineTo(8, 2); ctx.lineTo(16, 6); ctx.fill();
         } else {
-            ctx.ellipse(-12, 0, 4, 6, 0, 0, Math.PI*2);
-            ctx.ellipse(12, 0, 4, 6, 0, 0, Math.PI*2);
+            ctx.ellipse(-12 + eyeX, 0 + eyeY, 4, 6, 0, 0, Math.PI*2);
+            ctx.ellipse(12 + eyeX, 0 + eyeY, 4, 6, 0, 0, Math.PI*2);
             ctx.fill();
             if (emotion === 'sad') {
                 ctx.fillStyle = '#00f2ff';
@@ -341,7 +362,7 @@ function drawCat(ctx, time, emotion) {
     ctx.beginPath(); ctx.arc(0, 10, 3, 0, Math.PI*2); ctx.fill();
 }
 
-function drawSkull(ctx, time, emotion) {
+function drawSkull(ctx, time, emotion, eyeX = 0, eyeY = 0) {
     const boneGrad = ctx.createRadialGradient(-10, -15, 5, 0, 0, 35);
     boneGrad.addColorStop(0, '#ffffff');
     boneGrad.addColorStop(1, '#bdc3c7');

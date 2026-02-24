@@ -310,7 +310,6 @@
                 <div class="player-name">JUGADOR</div>
                 <button class="name-edit-btn" onclick="openNameEditor()">✏️</button>
             </div>
-            <div class="player-title">Cadete Espacial</div>
             
             <div class="level-bar-container">
                 <div class="level-info">
@@ -363,7 +362,21 @@
     </div>
 
     <script src="../js/avatar.js"></script>
+    <script src="../js/global.js"></script>
     <script>
+        // Esperar a que el DOM esté listo para evitar errores de elementos no encontrados
+        // PERO las funciones deben definirse FUERA para que el HTML las vea.
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicialización segura
+            if(document.getElementById('bg-canvas')) {
+                initParticles();
+                animateBg();
+            }
+            if(typeof loadStats === 'function') loadStats();
+            if(typeof renderMainAvatar === 'function') renderMainAvatar(currentAvatar);
+            if(typeof renderNavAvatar === 'function') renderNavAvatar(currentAvatar);
+        });
+
         // --- BACKGROUND ANIMATION ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
@@ -454,14 +467,13 @@
         function animateBg() {
             requestAnimationFrame(animateBg);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
+            if(particlesArray) {
+                for (let i = 0; i < particlesArray.length; i++) {
+                    particlesArray[i].update();
+                }
+                connect();
             }
-            connect();
         }
-        
-        initParticles();
-        animateBg();
 
         // --- UNIFIED PROFILE & GAME DATA ---
         const profileNameEl = document.querySelector('.player-name');
@@ -625,7 +637,6 @@
             renderNavAvatar(currentAvatar);
             closeEditor();
         }
-
     </script>
 </body>
 </html>

@@ -178,7 +178,10 @@
         <div style="flex-grow: 1; text-align: center;">
             <span style="color: var(--text-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Jugando: Minefun.io</span>
         </div>
-        <button style="background: var(--accent); border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">MODO PRO</button>
+        <div class="nav-profile-container" style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.1); padding:5px 15px; border-radius:30px;">
+            <span class="nav-user-name" style="color:white; font-weight:bold;">JUGADOR</span>
+            <canvas id="nav-avatar" width="40" height="40" style="border-radius:50%; background:#111;"></canvas>
+        </div>
     </nav>
 
     <div class="main-content">
@@ -228,31 +231,8 @@
         </div>
 
         <div class="sidebar">
-            <div style="color:var(--text-dim); font-size:12px; text-transform:uppercase; letter-spacing:1px;">Más Populares</div>
-            
-            <a href="subway.html" class="rec-card">
-                <div class="rec-thumb">🏃</div>
-                <div class="rec-info">
-                    <b style="display:block">Subway Runner</b>
-                    <small style="color:var(--accent)">Acción / Parkour</small>
-                </div>
-            </a>
-
-            <a href="javascript:void(0)" class="rec-card">
-                <div class="rec-thumb">🚀</div>
-                <div class="rec-info">
-                    <b style="display:block">Space Defense</b>
-                    <small style="color:var(--accent)">Shooter</small>
-                </div>
-            </a>
-
-            <a href="javascript:void(0)" class="rec-card">
-                <div class="rec-thumb">🥊</div>
-                <div class="rec-info">
-                    <b style="display:block">Street Fight</b>
-                    <small style="color:var(--accent)">Lucha</small>
-                </div>
-            </a>
+            <div style="color:var(--text-dim); font-size:12px; text-transform:uppercase; letter-spacing:1px;">Recomendados</div>
+            <!-- Se llena con global.js -->
         </div>
     </div>
 	<div id="cookie-banner" class="cookie-box">
@@ -313,6 +293,8 @@
 
 <div id="mobile-fab" class="mobile-fab" onclick="toggleFull()">⛶</div>
 
+<script src="../js/avatar.js"></script>
+<script src="../js/global.js"></script>
 <script>
     // Mostrar banner si no han aceptado
     if (!localStorage.getItem('cookies-aceptadas')) {
@@ -360,14 +342,6 @@
             else fab.style.display = 'none';
         });
 
-        // --- SISTEMA DE GUARDADO DE TIEMPO ---
-        let minefunData = JSON.parse(localStorage.getItem('minefunData')) || { playTimeInSeconds: 0 };
-        
-        setInterval(() => {
-            minefunData.playTimeInSeconds++;
-            // Guardar cada 10 segundos para no saturar
-            if(minefunData.playTimeInSeconds % 10 === 0) localStorage.setItem('minefunData', JSON.stringify(minefunData));
-        }, 1000);
     </script>
 </body>
 </html>
