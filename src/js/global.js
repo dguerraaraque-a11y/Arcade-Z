@@ -8,7 +8,8 @@ const gamesDB = [
     { id: 'krunker', title: 'Krunker.io', category: 'FPS', url: 'krunker.html', icon: '🎯', iconClass: 'fa-solid fa-crosshairs', color: '#f1c40f', path: 'src/html/' },
     { id: 'slope', title: 'Slope', category: 'Arcade', url: 'slope.html', icon: '🏂', iconClass: 'fa-solid fa-person-snowboarding', color: '#9b59b6', path: 'src/html/' },
     { id: 'smashkarts', title: 'SmashKarts.io', category: 'Carreras / Acción', url: 'smashkarts.html', icon: '🏎️', iconClass: 'fa-solid fa-car-burst', color: '#ff4757', path: 'src/html/' },
-    { id: 'shellshock', title: 'ShellShock.io', category: 'FPS / Huevos', url: 'shellshock.html', icon: '🥚', iconClass: 'fa-solid fa-egg', color: '#feca57', path: 'src/html/' }
+    { id: 'shellshock', title: 'ShellShock.io', category: 'FPS / Huevos', url: 'shellshock.html', icon: '🥚', iconClass: 'fa-solid fa-egg', color: '#feca57', path: 'src/html/' },
+    { id: 'amongus', title: 'Among Us', category: 'Estrategia', url: 'amongus.html', icon: '🔪', iconClass: 'fa-solid fa-user-astronaut', color: '#e74c3c', path: 'src/html/' }
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -245,14 +246,71 @@ function initTimeTracking(gameId) {
     }, 1000);
 }
 
+// --- GAME INTERACTIONS (LIKES/DISLIKES) ---
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return num;
+}
+
+function initGameInteractions(gameId) {
+    const likeBtn = document.getElementById('like-btn');
+    const dislikeBtn = document.getElementById('dislike-btn');
+    const likeCount = document.getElementById('like-count');
+    const dislikeCount = document.getElementById('dislike-count');
+
+    if (!likeBtn || !dislikeBtn) return;
+
+    const API_URL = 'http://localhost:3000/api/stats/' + gameId;
+
+    // 1. Obtener estado inicial
+    fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            if(likeCount) likeCount.innerText = formatNumber(data.likes);
+            if(dislikeCount) dislikeCount.innerText = formatNumber(data.dislikes);
+        })
+        .catch(err => console.error('Error conectando al backend:', err));
+
+    // 2. Manejar Click Like
+    likeBtn.onclick = () => {
+        fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'like' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(likeCount) likeCount.innerText = formatNumber(data.likes);
+            // Animación simple
+            likeBtn.style.transform = 'scale(1.2)';
+            setTimeout(() => likeBtn.style.transform = 'scale(1)', 200);
+        });
+    };
+
+    // 3. Manejar Click Dislike
+    dislikeBtn.onclick = () => {
+        fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'dislike' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(dislikeCount) dislikeCount.innerText = formatNumber(data.dislikes);
+        });
+    };
+}
+
 // Auto-detectar juego y trackear tiempo
 const path = window.location.pathname.toLowerCase(); // Convertir a minúsculas para evitar errores
-if (path.includes('krunker')) initTimeTracking('krunker');
-if (path.includes('slope')) initTimeTracking('slope');
-if (path.includes('minefun')) initTimeTracking('minefun');
-if (path.includes('survev')) initTimeTracking('survev');
-if (path.includes('smashkarts')) initTimeTracking('smashkarts');
-if (path.includes('shellshock')) initTimeTracking('shellshock');
+if (path.includes('krunker')) { initTimeTracking('krunker'); initGameInteractions('krunker'); }
+if (path.includes('slope')) { initTimeTracking('slope'); initGameInteractions('slope'); }
+if (path.includes('minefun')) { initTimeTracking('minefun'); initGameInteractions('minefun'); }
+if (path.includes('survev')) { initTimeTracking('survev'); initGameInteractions('survev'); }
+if (path.includes('smashkarts')) { initTimeTracking('smashkarts'); initGameInteractions('smashkarts'); }
+if (path.includes('shellshock')) { initTimeTracking('shellshock'); initGameInteractions('shellshock'); }
+if (path.includes('amongus')) { initTimeTracking('amongus'); initGameInteractions('amongus'); }
 
 // Corrección de rutas para enlaces dinámicos
 if (path.includes('src/html')) {

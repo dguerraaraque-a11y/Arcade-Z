@@ -7,7 +7,8 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
     // Validar configuración para evitar pantalla negra
     const safeConfig = {
         color: config && config.color ? config.color : '#222',
-        icon: config && config.icon ? config.icon : 'robot'
+        icon: config && config.icon ? config.icon : 'robot',
+        frame: config && config.frame ? config.frame : 'none'
     };
 
     // Draw background
@@ -87,6 +88,9 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
         case 'robot':
         default: drawRobot(ctx, time, emotion, eyeOffsetX, eyeOffsetY); break;
     }
+
+    // Draw Frame (New System)
+    drawFrame(ctx, safeConfig.frame, 0, 0, 100); // 100 is base size due to scale
     ctx.restore();
 
     // Draw Particles (Global coordinates)
@@ -97,6 +101,57 @@ function renderAvatar(canvasEl, config, time = 0, interaction = null, particles 
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
         });
         ctx.globalAlpha = 1;
+    }
+}
+
+function drawFrame(ctx, type, x, y, size) {
+    const r = size / 2;
+    ctx.lineWidth = 5;
+    
+    if (type === 'gold') {
+        const grad = ctx.createLinearGradient(-r, -r, r, r);
+        grad.addColorStop(0, '#ffd700'); grad.addColorStop(0.5, '#fff'); grad.addColorStop(1, '#b8860b');
+        ctx.strokeStyle = grad;
+        ctx.beginPath(); ctx.arc(0, 0, r - 2.5, 0, Math.PI*2); ctx.stroke();
+        // Shine
+        ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 15;
+        ctx.stroke(); ctx.shadowBlur = 0;
+    } 
+    else if (type === 'neon') {
+        ctx.strokeStyle = '#00f2ff';
+        ctx.shadowColor = '#00f2ff'; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.arc(0, 0, r - 2.5, 0, Math.PI*2); ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.shadowBlur = 0;
+    }
+    else if (type === 'cyber') {
+        ctx.strokeStyle = '#ff003c';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, r - 2, 0, Math.PI*2); ctx.stroke();
+        // Tech bits
+        ctx.strokeStyle = '#00f2ff';
+        ctx.beginPath(); ctx.arc(0, 0, r + 2, 0, Math.PI*0.5); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, r + 2, Math.PI, Math.PI*1.5); ctx.stroke();
+    }
+    else if (type === 'wood') {
+        ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(0, 0, r - 3, 0, Math.PI*2); ctx.stroke();
+        ctx.strokeStyle = '#5d4037'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    else if (type === 'metal') {
+        const grad = ctx.createLinearGradient(-r, -r, r, r);
+        grad.addColorStop(0, '#bdc3c7'); grad.addColorStop(0.5, '#7f8c8d'); grad.addColorStop(1, '#2c3e50');
+        ctx.strokeStyle = grad; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(0, 0, r - 3, 0, Math.PI*2); ctx.stroke();
+        // Bolts
+        ctx.fillStyle = '#2c3e50';
+        [0, Math.PI/2, Math.PI, Math.PI*1.5].forEach(a => {
+            ctx.beginPath(); ctx.arc(Math.cos(a)*(r-3), Math.sin(a)*(r-3), 2, 0, Math.PI*2); ctx.fill();
+        });
+    }
+    else {
+        // Default simple border
+        // ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.stroke();
     }
 }
 

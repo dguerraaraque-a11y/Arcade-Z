@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmashKarts.io | Arcade-Z</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
     <style>
         :root { --accent: #ff4757; --bg-nav: #1a1a1d; --text-dim: #9ca3af; --bg-card: #252529; }
@@ -23,7 +24,7 @@
         iframe { width: 100%; height: 100%; border: none; }
         
         .game-header { background: var(--bg-nav); padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .action-btn { background: #333338; border: none; color: white; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .action-btn { background: #333338; border: none; color: white; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
         .action-btn:hover { background: #44444a; }
 
         .sidebar { display: flex; flex-direction: column; gap: 15px; }
@@ -59,8 +60,9 @@
                     <p style="margin:5px 0 0; color:var(--text-dim); font-size:14px;">Arcade-Z Network • Carreras y Combate</p>
                 </div>
                 <div class="game-actions">
-                    <button class="action-btn">👍 99k+</button>
-                    <button class="action-btn" onclick="toggleFull()">⛶ Fullscreen</button>
+                    <button id="like-btn" class="action-btn" style="color: #2ecc71;"><i class="fa-solid fa-thumbs-up"></i> <span id="like-count">0</span></button>
+                    <button id="dislike-btn" class="action-btn" style="color: #e74c3c;"><i class="fa-solid fa-thumbs-down"></i> <span id="dislike-count">0</span></button>
+                    <button class="action-btn" onclick="toggleFull()"><i class="fa-solid fa-expand"></i> Fullscreen</button>
                 </div>
             </div>
 

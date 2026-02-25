@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil de Jugador | Arcade-Z</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --accent: #00f2ff; /* Neon Blue */
@@ -268,6 +269,22 @@
         }
         .icon-btn:hover, .icon-btn.selected { background: var(--accent); color: black; border-color: var(--accent); }
 
+        /* Frame Buttons */
+        .frame-btn {
+            width: 50px; height: 50px; background: #222; border-radius: 8px; 
+            display: flex; justify-content: center; align-items: center; font-size: 20px;
+            cursor: pointer; border: 1px solid #444; transition: 0.2s;
+            padding: 2px;
+        }
+        .frame-btn:hover, .frame-btn.selected { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        /* Tabs for Editor */
+        .editor-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .editor-tab { background: transparent; border: 1px solid #444; color: #888; padding: 5px 15px; border-radius: 15px; cursor: pointer; }
+        .editor-tab.active { background: var(--accent); color: black; border-color: var(--accent); font-weight: bold; }
+        .editor-section { display: none; }
+        .editor-section.active { display: block; }
+
         .save-btn {
             background: var(--gradient); border: none; color: white;
             padding: 12px 30px; border-radius: 30px; font-weight: bold;
@@ -338,14 +355,25 @@
             
             <canvas id="editor-preview" class="editor-preview" width="92" height="92"></canvas>
 
-            <div class="option-group">
+            <div class="editor-tabs">
+                <button class="editor-tab active" onclick="switchEditorTab('color')">Color</button>
+                <button class="editor-tab" onclick="switchEditorTab('icon')">Icono</button>
+                <button class="editor-tab" onclick="switchEditorTab('frame')">Marco</button>
+            </div>
+
+            <div id="tab-color" class="editor-section active option-group">
                 <span class="option-label">Color de Fondo</span>
                 <div class="color-grid" id="color-options"></div>
             </div>
 
-            <div class="option-group">
+            <div id="tab-icon" class="editor-section option-group">
                 <span class="option-label">Icono</span>
                 <div class="icon-grid" id="icon-options"></div>
+            </div>
+
+            <div id="tab-frame" class="editor-section option-group">
+                <span class="option-label">Marco</span>
+                <div class="icon-grid" id="frame-options"></div>
             </div>
 
             <button class="save-btn" onclick="saveAvatar()">GUARDAR CAMBIOS</button>
@@ -490,13 +518,14 @@
         let totalPlayTime = 0; // in seconds
 
         // --- AVATAR SYSTEM ---
-        const defaultAvatar = { color: '#222', icon: 'robot' };
+        const defaultAvatar = { color: '#222', icon: 'robot', frame: 'none' };
         const loadedAvatar = JSON.parse(localStorage.getItem('arcadeAvatar')) || {};
         let currentAvatar = { ...defaultAvatar, ...loadedAvatar };
         
         // Options
         const colors = ['#222', '#ff003c', '#00f2ff', '#32ff7e', '#ffd700', '#9b59b6', '#e67e22']; // Background colors
         const icons = ['robot', 'alien', 'ghost', 'cat', 'skull', 'pumpkin', 'ninja', 'devil', 'wizard', 'pig', 'dog', 'rabbit', 'bear', 'panda'];
+        const frames = ['none', 'gold', 'neon', 'cyber', 'wood', 'metal'];
 
         let tempAvatar = { ...currentAvatar };
         let avatarInteraction = { hover: false, isHit: false, hitTime: 0, clickCount: 0, lastClick: 0, lastMove: Date.now() };
@@ -574,6 +603,53 @@
             animate();
         }
 
+        // --- STATS LOADING LOGIC (Fixed) ---
+        function loadStats() {
+            grid.innerHTML = '';
+            totalScore = 0;
+            totalPlayTime = 0;
+            let statsFound = false;
+
+            // gamesDB viene de global.js
+            if (typeof gamesDB !== 'undefined') {
+                gamesDB.forEach(game => {
+                    const data = JSON.parse(localStorage.getItem(`${game.id}Data`));
+                    if (!data) return;
+
+                    statsFound = true;
+                    let gameTime = data.playTimeInSeconds || 0;
+                    let gameHighScore = data.highScore || (data.stats ? data.stats.totalScore : 0) || 0;
+                    let gameKills = data.stats ? data.stats.kills : 0;
+                    
+                    totalPlayTime += gameTime;
+                    totalScore += gameHighScore;
+
+                    const timePlayedStr = new Date(gameTime * 1000).toISOString().substr(11, 8);
+
+                    grid.innerHTML += `
+                        <div class="stat-card">
+                            <h2><span style="font-size:24px">${game.iconClass ? `<i class="${game.iconClass}"></i>` : game.icon}</span> ${game.title}</h2>
+                            ${gameHighScore > 0 ? `<div class="stat-item"><span class="stat-label">Récord:</span> <span class="stat-value">${gameHighScore}</span></div>` : ''}
+                            ${gameTime > 0 ? `<div class="stat-item"><span class="stat-label">Tiempo:</span> <span class="stat-value">${timePlayedStr}</span></div>` : ''}
+                            ${gameKills > 0 ? `<div class="stat-item"><span class="stat-label">Bajas:</span> <span class="stat-value">${gameKills}</span></div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            if (!statsFound) {
+                grid.innerHTML = '<p style="color:#888; text-align:center; grid-column:1/-1;">Juega para ver tus estadísticas aquí.</p>';
+            }
+
+            // Update Profile UI
+            if(profileNameEl) profileNameEl.textContent = profile.name;
+            if(navNameEl) navNameEl.textContent = profile.name;
+            
+            // XP Calculation (Simple)
+            document.getElementById('xp-text').innerText = `${Math.floor(totalScore/10)} / 1000 XP`;
+            document.getElementById('xp-bar').style.width = `${Math.min(100, (totalScore/10)/10)}%`;
+        }
+
         function openEditor() {
             document.getElementById('editor-modal').style.display = 'flex';
             tempAvatar = { ...currentAvatar };
@@ -582,6 +658,26 @@
 
         function closeEditor() {
             document.getElementById('editor-modal').style.display = 'none';
+        }
+
+        function openNameEditor() {
+            document.getElementById('name-modal').style.display = 'flex';
+            document.getElementById('new-username').value = profile.name;
+            document.getElementById('new-username').focus();
+        }
+
+        function closeNameEditor() {
+            document.getElementById('name-modal').style.display = 'none';
+        }
+
+        function saveName() {
+            const newName = document.getElementById('new-username').value.trim();
+            if (newName && newName.length <= 15) {
+                profile.name = newName;
+                localStorage.setItem('arcadeProfile', JSON.stringify(profile));
+                loadStats(); // Refresh UI
+                closeNameEditor();
+            }
         }
 
         function renderEditor() {
@@ -613,9 +709,21 @@
                 </div>
             `).join('');
 
+            const frameContainer = document.getElementById('frame-options');
+            frameContainer.innerHTML = frames.map(f => `
+                <div class="frame-btn ${tempAvatar.frame === f ? 'selected' : ''}" 
+                     onclick="selectFrame('${f}')">
+                     <canvas width="40" height="40" id="frame-canvas-${f}"></canvas>
+                </div>
+            `).join('');
+
             icons.forEach(iconName => {
                 const c = document.getElementById(`btn-canvas-${iconName}`);
                 renderAvatar(c, { color: 'transparent', icon: iconName }, Date.now());
+            });
+            frames.forEach(f => {
+                const c = document.getElementById(`frame-canvas-${f}`);
+                renderAvatar(c, { color: '#222', icon: 'robot', frame: f }, Date.now());
             });
         }
 
@@ -628,6 +736,18 @@
         function selectIcon(i) {
             tempAvatar.icon = i;
             renderEditor();
+        }
+
+        function selectFrame(f) {
+            tempAvatar.frame = f;
+            renderEditor();
+        }
+
+        function switchEditorTab(tabName) {
+            document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.editor-section').forEach(s => s.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
         }
 
         function saveAvatar() {
