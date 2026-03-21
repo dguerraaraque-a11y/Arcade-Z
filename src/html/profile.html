@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --accent: #00f2ff; /* Neon Blue */
-            --secondary: #ff003c; /* Neon Pink */
-            --bg-body: #050505;
-            --bg-nav: rgba(20, 20, 25, 0.9);
-            --bg-card: rgba(30, 30, 35, 0.6);
+            --accent: #00f2ff;
+            --secondary: #ff003c;
+            --bg-body: #0f0f11;
+            --bg-nav: #1a1a1d;
+            --bg-card: #1a1a1d;
             --text-main: #ffffff;
             --text-dim: #9ca3af;
             --gradient: linear-gradient(135deg, #00f2ff 0%, #0072ff 100%);
@@ -22,10 +22,7 @@
             background-color: var(--bg-body);
             color: var(--text-main);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            overflow-x: hidden;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            overflow-y: auto;
         }
 
         /* Background Animation Canvas */
@@ -43,9 +40,8 @@
             display: flex;
             align-items: center;
             padding: 0 25px;
-            gap: 20px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -57,7 +53,7 @@
             color: var(--accent);
             text-decoration: none;
             letter-spacing: -1.5px;
-            text-transform: uppercase;
+            text-transform: uppercase; /* Mantener consistencia */
             text-shadow: 0 0 15px var(--accent);
         }
 
@@ -66,7 +62,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background: rgba(255, 255, 255, 0.05);
+            background: #252529;
             padding: 5px 15px 5px 20px;
             border-radius: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -85,12 +81,12 @@
         }
 
         .container {
-            padding: 40px;
+            padding: 25px;
             max-width: 1100px;
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
-            display: grid;
+            display: grid; /* Layout principal */
             grid-template-columns: 300px 1fr;
             gap: 40px;
             animation: fadeIn 0.8s ease-out;
@@ -102,12 +98,11 @@
 
         /* --- PROFILE SIDEBAR --- */
         .profile-card {
-            background: var(--bg-card);
+            background: var(--bg-nav);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
             padding: 30px;
             text-align: center;
-            backdrop-filter: blur(10px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -123,7 +118,7 @@
 
         .avatar {
             width: 100%; height: 100%;
-            border-radius: 50%;
+            border-radius: 50%; /* Mantener circular */
             background: #222;
             display: flex; justify-content: center; align-items: center;
             font-size: 60px;
@@ -131,20 +126,10 @@
             box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
             transition: transform 0.3s;
         }
-
+        
         .avatar:hover { transform: scale(1.05); }
 
         .edit-btn {
-            position: absolute; bottom: 0; right: 0;
-            background: var(--secondary); color: white;
-            border: none; width: 40px; height: 40px; border-radius: 50%;
-            cursor: pointer; font-size: 18px;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 0 10px var(--secondary);
-            transition: 0.2s;
-        }
-        .edit-btn:hover { transform: scale(1.1); background: white; color: var(--secondary); }
-        .name-edit-btn {
             position: absolute; bottom: 0; right: 0;
             background: var(--secondary); color: white;
             border: none; width: 40px; height: 40px; border-radius: 50%;
@@ -162,14 +147,14 @@
             gap: 10px;
         }
 
-        .player-name { font-size: 24px; font-weight: 800; margin: 10px 0 5px; color: white; padding-right: 25px; }
+        .player-name { font-size: 24px; font-weight: 800; margin: 10px 0 5px; color: white; }
         .player-title { color: var(--text-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
 
         .level-bar-container { width: 100%; margin-top: 10px; }
         .level-info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: #aaa; }
         .progress-track { width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 1s ease-out; }
-
+        
         /* --- STATS SECTION --- */
         .content-area h1 {
             font-size: 28px; margin: 0 0 20px 0;
@@ -183,12 +168,12 @@
         }
 
         .stat-card {
-            background: var(--bg-card);
+            background: var(--bg-nav);
             border-radius: 16px;
             padding: 25px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid #2d2d33;
             transition: transform 0.3s, border-color 0.3s;
-            position: relative;
+            position: relative; /* Para el ::before */
             overflow: hidden;
         }
 
@@ -200,7 +185,7 @@
 
         .stat-card::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: var(--gradient);
+            background: var(--accent); /* Color del juego */
         }
 
         .stat-card h2 {
@@ -210,13 +195,6 @@
             display: flex; align-items: center; gap: 10px;
             margin-bottom: 20px;
         }
-        .fav-star {
-            margin-left: auto;
-            cursor: pointer;
-            font-size: 22px;
-            transition: transform 0.2s, color 0.2s;
-        }
-        .fav-star.is-favorite { color: gold; transform: scale(1.2); }
 
         .stat-item {
             display: flex;
@@ -230,7 +208,14 @@
 
         .stat-label { color: var(--text-dim); }
         .stat-value { font-weight: bold; color: var(--accent); font-family: 'Courier New', monospace; font-size: 16px; }
-
+        
+        /* --- ACHIEVEMENTS --- */
+        .achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .achievement-card { background: var(--bg-nav); border: 1px solid #2d2d33; padding: 15px; border-radius: 12px; text-align: center; }
+        .ach-icon { font-size: 30px; color: #ffd700; margin-bottom: 10px; text-shadow: 0 0 10px #ffd700; }
+        .ach-name { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .ach-desc { font-size: 12px; color: #888; }
+        
         /* --- AVATAR EDITOR MODAL --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -241,7 +226,7 @@
         }
 
         .editor-box {
-            background: #151518; border: 1px solid var(--accent);
+            background: #1a1a1d; border: 1px solid var(--accent);
             padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;
             text-align: center; box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
         }
@@ -325,7 +310,7 @@
             </div>
             <div class="player-name-container">
                 <div class="player-name">JUGADOR</div>
-                <button class="name-edit-btn" onclick="openNameEditor()">✏️</button>
+                <button class="edit-btn" onclick="openNameEditor()" style="width:30px; height:30px; font-size:14px; position:static;">✏️</button>
             </div>
             
             <div class="level-bar-container">
@@ -343,6 +328,11 @@
         <div class="content-area">
             <h1>Estadísticas de Juego</h1>
             <div id="stats-grid" class="stats-grid">
+                <!-- Las estadísticas se cargarán aquí -->
+            </div>
+
+            <h1 style="margin-top: 40px;">Logros Desbloqueados</h1>
+            <div id="achievements-grid" class="achievement-grid">
                 <!-- Las estadísticas se cargarán aquí -->
             </div>
         </div>
@@ -393,14 +383,15 @@
     <script src="../js/global.js"></script>
     <script>
         // Esperar a que el DOM esté listo para evitar errores de elementos no encontrados
-        // PERO las funciones deben definirse FUERA para que el HTML las vea.
         document.addEventListener('DOMContentLoaded', () => {
             // Inicialización segura
             if(document.getElementById('bg-canvas')) {
+                resizeCanvas(); // Set initial size
                 initParticles();
                 animateBg();
             }
             if(typeof loadStats === 'function') loadStats();
+            if(typeof loadAchievements === 'function') loadAchievements();
             if(typeof renderMainAvatar === 'function') renderMainAvatar(currentAvatar);
             if(typeof renderNavAvatar === 'function') renderNavAvatar(currentAvatar);
         });
@@ -507,10 +498,10 @@
         const profileNameEl = document.querySelector('.player-name');
         const navNameEl = document.querySelector('.nav-user-name');
         const grid = document.getElementById('stats-grid');
-        
+
         const defaultProfile = {
             name: 'JUGADOR',
-            favorites: []
+            zCoins: 0, xp: 0
         };
         const loadedProfile = JSON.parse(localStorage.getItem('arcadeProfile')) || {};
         let profile = { ...defaultProfile, ...loadedProfile };
@@ -519,7 +510,7 @@
 
         // --- AVATAR SYSTEM ---
         const defaultAvatar = { color: '#222', icon: 'robot', frame: 'none' };
-        const loadedAvatar = JSON.parse(localStorage.getItem('arcadeAvatar')) || {};
+        const loadedAvatar = JSON.parse(localStorage.getItem('arcadeAvatar')) || defaultAvatar;
         let currentAvatar = { ...defaultAvatar, ...loadedAvatar };
         
         // Options
@@ -603,51 +594,80 @@
             animate();
         }
 
-        // --- STATS LOADING LOGIC (Fixed) ---
+        // --- STATS & XP LOADING LOGIC ---
         function loadStats() {
             grid.innerHTML = '';
             totalScore = 0;
             totalPlayTime = 0;
             let statsFound = false;
+            let mostPlayed = { id: null, time: -1 };
 
             // gamesDB viene de global.js
             if (typeof gamesDB !== 'undefined') {
                 gamesDB.forEach(game => {
                     const data = JSON.parse(localStorage.getItem(`${game.id}Data`));
-                    if (!data) return;
+                    if (!data) return; // Si no hay datos, no mostrar tarjeta
 
-                    statsFound = true;
-                    let gameTime = data.playTimeInSeconds || 0;
-                    let gameHighScore = data.highScore || (data.stats ? data.stats.totalScore : 0) || 0;
-                    let gameKills = data.stats ? data.stats.kills : 0;
-                    
+                    statsFound = true; // Se encontró al menos un juego con datos
+
+                    // Normalizar datos de diferentes juegos
+                    const gameTime = data.playTimeInSeconds || 0;
+                    const gameHighScore = data.highScore || (data.stats ? data.stats.totalScore : 0) || 0;
+                    const gameKills = data.stats ? data.stats.kills : 0;
+                    const gamesPlayed = data.games || (data.stats ? data.stats.games : 0) || 0;
+                    const chessElo = data.elo ? Math.round(data.elo) : 0;
+
+                    if (gameTime > mostPlayed.time) {
+                        mostPlayed = { id: game.id, time: gameTime };
+                    }
+
                     totalPlayTime += gameTime;
-                    totalScore += gameHighScore;
+                    totalScore += gameHighScore; // Sumar récords para XP
 
                     const timePlayedStr = new Date(gameTime * 1000).toISOString().substr(11, 8);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'stat-card';
+                    card.style.setProperty('--accent', game.color); // Usar color del juego
+                    
+                    let statsHTML = '';
+                    if (gameHighScore > 0) statsHTML += `<div class="stat-item"><span class="stat-label">Récord:</span> <span class="stat-value">${gameHighScore.toLocaleString()}</span></div>`;
+                    if (chessElo > 0) statsHTML += `<div class="stat-item"><span class="stat-label">ELO Ajedrez:</span> <span class="stat-value">${chessElo}</span></div>`;
+                    if (gameTime > 0) statsHTML += `<div class="stat-item"><span class="stat-label">Tiempo:</span> <span class="stat-value">${timePlayedStr}</span></div>`;
+                    if (gameKills > 0) statsHTML += `<div class="stat-item"><span class="stat-label">Bajas:</span> <span class="stat-value">${gameKills.toLocaleString()}</span></div>`;
+                    if (gamesPlayed > 0) statsHTML += `<div class="stat-item"><span class="stat-label">Partidas:</span> <span class="stat-value">${gamesPlayed}</span></div>`;
 
-                    grid.innerHTML += `
-                        <div class="stat-card">
-                            <h2><span style="font-size:24px">${game.iconClass ? `<i class="${game.iconClass}"></i>` : game.icon}</span> ${game.title}</h2>
-                            ${gameHighScore > 0 ? `<div class="stat-item"><span class="stat-label">Récord:</span> <span class="stat-value">${gameHighScore}</span></div>` : ''}
-                            ${gameTime > 0 ? `<div class="stat-item"><span class="stat-label">Tiempo:</span> <span class="stat-value">${timePlayedStr}</span></div>` : ''}
-                            ${gameKills > 0 ? `<div class="stat-item"><span class="stat-label">Bajas:</span> <span class="stat-value">${gameKills}</span></div>` : ''}
-                        </div>
-                    `;
+                    if (statsHTML) { // Solo mostrar tarjeta si tiene al menos una estadística
+                        card.innerHTML = `
+                            <h2><span style="font-size:24px; color:${game.color}">${game.iconClass ? `<i class="${game.iconClass}"></i>` : game.icon}</span> ${game.title}</h2>
+                            ${statsHTML}
+                        `;
+                        grid.appendChild(card);
+                    }
                 });
             }
 
             if (!statsFound) {
-                grid.innerHTML = '<p style="color:#888; text-align:center; grid-column:1/-1;">Juega para ver tus estadísticas aquí.</p>';
+                grid.innerHTML = '<p style="color:#888; text-align:center; grid-column:1/-1; font-style:italic;">Juega para ver tus estadísticas aquí.</p>';
             }
 
             // Update Profile UI
             if(profileNameEl) profileNameEl.textContent = profile.name;
             if(navNameEl) navNameEl.textContent = profile.name;
             
-            // XP Calculation (Simple)
-            document.getElementById('xp-text').innerText = `${Math.floor(totalScore/10)} / 1000 XP`;
-            document.getElementById('xp-bar').style.width = `${Math.min(100, (totalScore/10)/10)}%`;
+            // XP Calculation (Mejorado)
+            const xpFromTime = Math.floor(totalPlayTime / 60); // 1 XP por minuto
+            const xpFromScore = Math.floor(totalScore / 100); // 1 XP por cada 100 puntos de récord
+            const totalXP = (profile.xp || 0) + xpFromTime + xpFromScore;
+            
+            const level = Math.floor(totalXP / 1000) + 1;
+            const xpForNextLevel = 1000;
+            const currentLevelXP = totalXP % xpForNextLevel;
+            const xpPercentage = (currentLevelXP / xpForNextLevel) * 100;
+
+            document.querySelector('.level-info span:first-child').innerText = `Nivel ${level}`;
+            document.getElementById('xp-text').innerText = `${currentLevelXP} / ${xpForNextLevel} XP`;
+            document.getElementById('xp-bar').style.width = `${xpPercentage}%`;
         }
 
         function openEditor() {
@@ -756,6 +776,42 @@
             renderMainAvatar(currentAvatar);
             renderNavAvatar(currentAvatar);
             closeEditor();
+        }
+
+        function loadAchievements() {
+            const achGrid = document.getElementById('achievements-grid');
+            if (!achGrid) return;
+            achGrid.innerHTML = '';
+            let unlockedCount = 0;
+
+            // Copiamos la lista de logros de Space Defense como ejemplo
+            const achievementList = [
+                { id: 'kill_1', name: 'Exterminador I', desc: 'Elimina 50 enemigos', reward: 100 },
+                { id: 'score_1', name: 'Leyenda I', desc: 'Alcanza 10,000 puntos', reward: 250 },
+                { id: 'games_1', name: 'Veterano I', desc: 'Juega 5 partidas', reward: 50 },
+                { id: 'coins_1', name: 'Magnate I', desc: 'Gana 200 monedas', reward: 150 }
+            ];
+
+            const spaceData = JSON.parse(localStorage.getItem('spaceDefenseData')) || {};
+            const unlockedAchievements = spaceData.achievements || [];
+
+            unlockedAchievements.forEach(achId => {
+                const achData = achievementList.find(a => a.id === achId);
+                if (achData) {
+                    unlockedCount++;
+                    achGrid.innerHTML += `
+                        <div class="achievement-card">
+                            <div class="ach-icon">🏆</div>
+                            <div class="ach-name">${achData.name}</div>
+                            <div class="ach-desc">${achData.desc}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (unlockedCount === 0) {
+                achGrid.innerHTML = '<p style="color:#888; text-align:center; grid-column:1/-1; font-style:italic;">Completa hazañas en los juegos para ganar logros.</p>';
+            }
         }
     </script>
 </body>

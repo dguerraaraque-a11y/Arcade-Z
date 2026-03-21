@@ -1,15 +1,18 @@
 // Base de datos de juegos
 const gamesDB = [
     { id: 'minefun', title: 'Minefun.io', category: 'Online / Construcción', url: 'Minefun.html', icon: '🧱', iconClass: 'fa-solid fa-cube', color: '#00ff33', path: 'src/html/' },
-    { id: 'survev', title: 'Survev.io', category: 'Battle Royale', url: 'survev.html', icon: '🔫', iconClass: 'fa-solid fa-gun', color: '#ff5e62', path: 'src/html/' },
+    { id: 'survev', title: 'Survev.io', category: 'FPS / Battle Royale', url: 'survev.html', icon: '🔫', iconClass: 'fa-solid fa-gun', color: '#ff5e62', path: 'src/html/' },
     { id: 'soccer', title: 'Z-Soccer', category: 'Deportes', url: 'z-soccer.html', icon: '⚽', iconClass: 'fa-solid fa-futbol', color: '#27ae60', path: 'src/html/' },
-    { id: 'space', title: 'Space Defense', category: 'Shooter', url: 'space-defense.html', icon: '🚀', iconClass: 'fa-solid fa-rocket', color: '#00f2ff', path: 'src/html/' },
+    { id: 'space', title: 'Space Defense', category: 'FPS / Shooter / Acción', url: 'space-defense.html', icon: '🚀', iconClass: 'fa-solid fa-rocket', color: '#00f2ff', path: 'src/html/' },
     { id: 'snake', title: 'Snake Z', category: 'Clásico', url: 'snake.html', icon: '🐍', iconClass: 'fa-solid fa-staff-snake', color: '#38ef7d', path: 'src/html/' },
     { id: 'krunker', title: 'Krunker.io', category: 'FPS', url: 'krunker.html', icon: '🎯', iconClass: 'fa-solid fa-crosshairs', color: '#f1c40f', path: 'src/html/' },
     { id: 'slope', title: 'Slope', category: 'Arcade', url: 'slope.html', icon: '🏂', iconClass: 'fa-solid fa-person-snowboarding', color: '#9b59b6', path: 'src/html/' },
     { id: 'smashkarts', title: 'SmashKarts.io', category: 'Carreras / Acción', url: 'smashkarts.html', icon: '🏎️', iconClass: 'fa-solid fa-car-burst', color: '#ff4757', path: 'src/html/' },
     { id: 'shellshock', title: 'ShellShock.io', category: 'FPS / Huevos', url: 'shellshock.html', icon: '🥚', iconClass: 'fa-solid fa-egg', color: '#feca57', path: 'src/html/' },
-    { id: 'amongus', title: 'Among Us', category: 'Estrategia', url: 'amongus.html', icon: '🔪', iconClass: 'fa-solid fa-user-astronaut', color: '#e74c3c', path: 'src/html/' }
+    { id: 'amongus', title: 'Among Us', category: 'Supervivencia / Estrategia', url: 'amongus.html', icon: '🔪', iconClass: 'fa-solid fa-user-astronaut', color: '#e74c3c', path: 'src/html/' },
+    { id: 'snakeio', title: 'Snake.io', category: 'Supervivencia / OnlineIA', url: 'snake_io.html', icon: '🐍', iconClass: 'fa-solid fa-staff-snake', color: '#38ef7d', path: 'src/html/' },
+    { id: 'chess', title: 'Chess', category: 'Pensar / Estrategia', url: 'chess.html', icon: '♟️', iconClass: 'fa-solid fa-chess-pawn', color: '#ffffff', path: 'src/html/' },
+    { id: 'tetris', title: 'Neon Tetris', category: 'Puzzle / Clásico', url: 'tetris.html', icon: '🧩', iconClass: 'fa-solid fa-cubes', color: '#e056fd', path: 'src/html/' },
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -101,8 +104,8 @@ function loadMainGameGrid() {
 
     shuffledGames.forEach((game, index) => {
         const card = document.createElement('a');
-        // La ruta es relativa a la página actual. index.html está en root.
-        card.href = game.path + game.url; 
+        // Apuntar al reproductor unificado 'play.html'
+        card.href = `src/html/play.html?game=${game.id}`; 
         card.className = 'game-card';
         card.style.animationDelay = `${0.4 + index * 0.1}s`;
 
@@ -134,6 +137,7 @@ function loadCategoryGrid() {
         { name: 'Shooters', icon: 'fa-solid fa-crosshairs', color: '#e74c3c', filter: 'FPS' },
         { name: 'Carreras', icon: 'fa-solid fa-flag-checkered', color: '#f1c40f', filter: 'Carreras' },
         { name: 'Arcade', icon: 'fa-solid fa-ghost', color: '#9b59b6', filter: 'Arcade' },
+		{ name: 'Supervivencia', icon: '"fa-solid fa-heart" style="color: rgb(219, 95, 95);"', color: '#FF0000', filter: 'Supervivencia' },
         { name: 'Deportes', icon: 'fa-solid fa-trophy', color: '#2ecc71', filter: 'Deportes' }
     ];
 
@@ -195,7 +199,8 @@ function loadRecommendedGames() {
         if (currentPage === game.url) return; // No recomendar el juego actual
 
         const card = document.createElement('a');
-        card.href = game.url;
+        // Apuntar al reproductor unificado
+        card.href = `play.html?game=${game.id}`;
         card.className = 'rec-card';
         card.innerHTML = `
             <div class="rec-thumb" style="background: ${game.color}20; color: ${game.color}">
@@ -270,7 +275,10 @@ function initGameInteractions(gameId) {
             if(likeCount) likeCount.innerText = formatNumber(data.likes);
             if(dislikeCount) dislikeCount.innerText = formatNumber(data.dislikes);
         })
-        .catch(err => console.error('Error conectando al backend:', err));
+        .catch(err => {
+            // Silenciar error si no hay backend (modo estático/local)
+            console.log('Modo offline: Stats no disponibles.');
+        });
 
     // 2. Manejar Click Like
     likeBtn.onclick = () => {
@@ -311,6 +319,8 @@ if (path.includes('survev')) { initTimeTracking('survev'); initGameInteractions(
 if (path.includes('smashkarts')) { initTimeTracking('smashkarts'); initGameInteractions('smashkarts'); }
 if (path.includes('shellshock')) { initTimeTracking('shellshock'); initGameInteractions('shellshock'); }
 if (path.includes('amongus')) { initTimeTracking('amongus'); initGameInteractions('amongus'); }
+if (path.includes('tetris')) { initTimeTracking('tetris'); initGameInteractions('tetris'); }
+if (path.includes('snake_io')) { initTimeTracking('snakeio'); initGameInteractions('snakeio'); }
 
 // Corrección de rutas para enlaces dinámicos
 if (path.includes('src/html')) {

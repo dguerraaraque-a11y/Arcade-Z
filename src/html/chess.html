@@ -1,0 +1,1096 @@
+﻿﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Pro | Arcade-Z</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <style>
+        :root {
+            --primary: #81b64c;
+            --accent: #81b64c;
+            --bg-body: #0f0f11;
+            --bg-nav: #1a1a1d;
+            --bg-card: #252529;
+            --text-main: #ffffff;
+            --text-dim: #9ca3af;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- NAVBAR --- */
+        nav {
+            background: var(--bg-nav);
+            height: 65px;
+            display: flex;
+            align-items: center;
+            padding: 0 25px;
+            gap: 20px;
+            border-bottom: 2px solid #2d2d33;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--primary);
+            text-decoration: none;
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-profile-container { margin-left: auto; display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-user-name { font-weight: 700; font-size: 14px; }
+
+        /* --- LAYOUT --- */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
+            padding: 25px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .game-area { display: flex; flex-direction: column; gap: 20px; }
+
+        .viewport-container {
+            background: #262421; /* Fondo tablero */
+            width: 100%;
+            height: 600px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            position: relative;
+            border: 1px solid #333;
+            display: flex; 
+            flex-direction: row; /* Layout horizontal interno */
+        }
+
+        #board-area {
+            width: 600px; height: 600px; position: relative;
+            flex-shrink: 0; /* Evitar que se encoja */
+        }
+        
+        #myBoard { width: 100%; height: 100%; }
+
+        /* --- CHESS SIDEBAR (INTERNA) --- */
+        .chess-sidebar {
+            flex-grow: 1;
+            display: flex; flex-direction: column; gap: 15px;
+            background: #1e1e1e; 
+            padding: 20px;
+            border-left: 1px solid #333;
+            min-width: 250px;
+        }
+
+        .chess-header { font-size: 18px; font-weight: bold; color: var(--primary); border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+        .move-history {
+            flex-grow: 1; overflow-y: auto; padding: 10px;
+            background: rgba(0,0,0,0.3); border-radius: 8px;
+            font-family: 'Courier New', monospace; font-size: 14px;
+            height: 300px; display: flex; flex-direction: column;
+        }
+
+        .history-row { display: flex; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .history-row:last-child { border-bottom: none; }
+        .num { color: #666; width: 30px; }
+        .move { width: 45%; color: #ddd; }
+
+        /* --- MENUS --- */
+        .menu-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 50; backdrop-filter: blur(5px);
+        }
+
+        .profile-corner {
+            position: absolute; top: 20px; left: 20px;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer; transition: 0.2s;
+        }
+        .menu-username { font-weight: bold; color: white; font-size: 16px; }
+        #menu-avatar { border-radius: 50%; background: #111; border: 2px solid var(--primary); }
+
+        .menu-title { font-size: 40px; font-weight: 900; color: var(--primary); margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .menu-btn {
+            background: #333; color: white; border: 2px solid #444;
+            padding: 15px 40px; font-size: 18px; font-weight: bold;
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
+            margin-bottom: 15px; width: 250px; text-align: center;
+        }
+        .menu-btn:hover { background: var(--primary); border-color: var(--primary); color: #000; transform: translateY(-2px); }
+        .menu-btn.secondary { border-color: #666; }
+
+        /* --- EVALUATION BAR --- */
+        .eval-bar-container {
+            width: 20px; height: 100%; background: #333;
+            border-radius: 4px; overflow: hidden; position: relative;
+            margin-right: 10px; border: 1px solid #555;
+        }
+        .eval-fill {
+            width: 100%; height: 50%; background: white;
+            position: absolute; bottom: 0; transition: height 0.5s ease;
+        }
+
+        /* --- CAPTURED PIECES --- */
+        .captured-area { display: flex; gap: 5px; height: 30px; align-items: center; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; margin-bottom: 10px; }
+        .captured-piece { width: 20px; height: 20px; background-size: contain; }
+
+        /* --- PUZZLE UI --- */
+        .puzzle-info { background: #2c3e50; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #3498db; display: none; }
+        .puzzle-status { font-weight: bold; margin-top: 5px; }
+        .puzzle-status.correct { color: #2ecc71; }
+        .puzzle-status.wrong { color: #e74c3c; }
+
+        /* --- BOT SELECTOR --- */
+        .bot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 500px; margin-bottom: 20px; }
+        .bot-card {
+            background: #222; border: 2px solid #444; border-radius: 10px; padding: 15px;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 15px;
+        }
+        .bot-card:hover { background: #333; border-color: #666; }
+        .bot-card.selected { border-color: var(--primary); background: rgba(129, 182, 76, 0.1); }
+        .bot-avatar canvas { width: 50px; height: 50px; border-radius: 50%; background: transparent; }
+        .bot-info { text-align: left; }
+        .bot-name { font-weight: bold; color: white; display: block; }
+        .bot-elo { font-size: 12px; color: #aaa; }
+
+        /* --- BOT CHAT --- */
+        .bot-chat-area {
+            background: #222; border-radius: 8px; padding: 15px; margin-bottom: 15px;
+            border: 1px solid #444; display: none;
+        }
+        .bot-profile { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .bot-bubble {
+            background: #333; padding: 10px; border-radius: 0 10px 10px 10px; color: #ddd; font-style: italic; font-size: 13px; position: relative;
+        }
+        .bot-bubble::before { content:''; position: absolute; top: 0; left: -8px; border-top: 8px solid #333; border-left: 8px solid transparent; }
+
+        /* --- CHESS PROFILE MODAL --- */
+        .profile-card-chess {
+            background: #222; border: 2px solid #444; border-radius: 15px;
+            padding: 30px; width: 400px; text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        .profile-header-chess { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; text-align: left; }
+        .avatar-wrapper { position: relative; }
+        #chess-profile-avatar { background: #111; border-radius: 50%; border: 2px solid var(--primary); }
+        .edit-btn-mini {
+            position: absolute; bottom: 0; right: 0; background: #333; border: 1px solid #555;
+            color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 12px;
+        }
+        .edit-btn-mini:hover { background: var(--primary); border-color: var(--primary); }
+        #chess-username-input {
+            background: transparent; border: none; border-bottom: 2px solid #555;
+            color: white; font-size: 24px; font-weight: bold; width: 100%; outline: none; padding-bottom: 5px;
+        }
+        #chess-username-input:focus { border-color: var(--primary); }
+        .elo-display { color: var(--primary); font-weight: bold; font-size: 14px; margin-top: 5px; }
+        
+        .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-box { flex: 1; background: #333; padding: 10px; border-radius: 8px; border-top: 3px solid #555; }
+        .stat-box.win { border-color: #2ecc71; }
+        .stat-box.loss { border-color: #e74c3c; }
+        .stat-box.draw { border-color: #f1c40f; }
+        .stat-val { font-size: 20px; font-weight: bold; color: white; }
+        .stat-label { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+        .history-section { background: #1a1a1d; border-radius: 8px; padding: 10px; height: 150px; overflow-y: auto; margin-bottom: 20px; text-align: left; }
+        .history-title { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .history-item { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #333; }
+        .history-result { font-weight: bold; }
+        .res-win { color: #2ecc71; } .res-loss { color: #e74c3c; } .res-draw { color: #f1c40f; }
+
+        /* --- GAME OVER MODAL --- */
+        #game-over-modal { display: none; }
+        .result-text { font-size: 30px; font-weight: bold; margin-bottom: 10px; color: white; }
+        .result-sub { color: #aaa; margin-bottom: 20px; }
+
+        /* --- STANDARD PAGE UI --- */
+        .game-header { background: var(--bg-nav); padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .action-btn { background: #333338; border: none; color: white; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .action-btn:hover { background: #44444a; }
+        
+        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .sidebar-title { color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        
+        .ad-real-container { background: #1a1a1d; border-radius: 12px; overflow: hidden; border: 1px solid #333; display: flex; justify-content: center; align-items: center; width: 100%; min-width: 300px; min-height: 100px; }
+        
+        /* Responsive adjustments for chess board */
+        @media (max-width: 1000px) {
+            .viewport-container { flex-direction: column; height: auto; }
+            #board-area { width: 100%; aspect-ratio: 1/1; height: auto; }
+            .chess-sidebar { width: 100%; border-left: none; border-top: 1px solid #333; height: 300px; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="../../index.html" class="nav-logo">Arcade-Z</a>
+        <div style="flex-grow: 1; text-align: center;">
+            <span style="color: var(--text-dim); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Jugando: Chess Pro</span>
+        </div>
+        <div class="nav-profile-container">
+            <span class="nav-user-name">Cargando...</span>
+            <canvas id="nav-avatar" width="40" height="40"></canvas>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="game-area">
+            <div id="game-vp" class="viewport-container">
+                <div class="eval-bar-container"><div id="eval-fill" class="eval-fill"></div></div>
+                
+                <div id="board-area">
+                    <div id="myBoard"></div>
+                    
+                    <!-- MENUS (Overlay on Board) -->
+                    <div id="start-menu" class="menu-overlay">
+                        <div class="profile-corner" onclick="openChessProfile()">
+                            <canvas id="menu-avatar" width="40" height="40"></canvas>
+                            <div class="menu-username">JUGADOR</div>
+                        </div>
+
+                        <div class="menu-title">CHESS <span style="color:white">PRO</span></div>
+                        <button class="menu-btn" onclick="showBotSelection()">JUGAR VS CPU</button>
+                        <button class="menu-btn" onclick="startLocalGame()">2 JUGADORES</button>
+                        <button class="menu-btn secondary" onclick="startDailyPuzzle()">RETO DIARIO 🧩</button>
+                    </div>
+
+                    <!-- BOT SELECTION MENU -->
+                    <div id="bot-menu" class="menu-overlay" style="display: none;">
+                        <div class="menu-title" style="font-size: 30px;">ELIGE OPONENTE</div>
+                        <div class="bot-grid" id="bot-list">
+                            <!-- Bots generated by JS -->
+                        </div>
+                        <div id="trainer-settings" style="display:none; flex-direction:column; gap:10px; margin-bottom:20px; width:100%; max-width:300px;">
+                            <div style="color:#aaa; font-size:12px;">NIVEL DEL ENTRENADOR (ELO)</div>
+                            <input type="range" id="trainer-elo" min="100" max="3000" step="50" value="1200" oninput="updateTrainerElo(this.value)">
+                            <div id="trainer-elo-display" style="text-align:center; font-weight:bold; color:var(--primary);">1200</div>
+                        </div>
+                        <button class="menu-btn" onclick="startVsCPU()">COMENZAR</button>
+                        <button class="menu-btn secondary" onclick="backToMenu()">VOLVER</button>
+                    </div>
+
+                    <!-- CHESS PROFILE MODAL -->
+                    <div id="chess-profile-modal" class="menu-overlay" style="display: none;">
+                        <div class="profile-card-chess">
+                            <div class="profile-header-chess">
+                                <div class="avatar-wrapper">
+                                    <canvas id="chess-profile-avatar" width="80" height="80"></canvas>
+                                    <button class="edit-btn-mini" onclick="randomizeChessAvatar()">🎲</button>
+                                </div>
+                                <div class="info-wrapper" style="flex:1">
+                                    <input type="text" id="chess-username-input" value="Guest" maxlength="12">
+                                    <div class="elo-display">ELO: <span id="chess-elo">1200</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-row">
+                                <div class="stat-box win"><div class="stat-val" id="stat-wins">0</div><div class="stat-label">VICTORIAS</div></div>
+                                <div class="stat-box loss"><div class="stat-val" id="stat-losses">0</div><div class="stat-label">DERROTAS</div></div>
+                                <div class="stat-box draw"><div class="stat-val" id="stat-draws">0</div><div class="stat-label">TABLAS</div></div>
+                            </div>
+
+                            <div class="history-section">
+                                <div class="history-title">HISTORIAL RECIENTE</div>
+                                <div id="chess-match-history" class="history-list">
+                                    <!-- Items -->
+                                </div>
+                            </div>
+
+                            <button class="menu-btn" onclick="closeChessProfile()">GUARDAR Y SALIR</button>
+                        </div>
+                    </div>
+
+                    <!-- GAME OVER MODAL -->
+                    <div id="game-over-modal" class="menu-overlay">
+                        <div id="result-text" class="result-text">VICTORIA</div>
+                        <div id="result-sub" class="result-sub">Por Jaque Mate</div>
+                        <button class="menu-btn" onclick="backToMenu()">MENÚ PRINCIPAL</button>
+                    </div>
+                </div>
+
+                <!-- CHESS CONTROLS (Internal Sidebar) -->
+                <div class="chess-sidebar">
+                    <div class="chess-header">
+                        <span>PARTIDA</span>
+                        <span id="turn-indicator" style="font-size: 12px; background: #333; padding: 4px 8px; border-radius: 4px;">TURNO BLANCAS</span>
+                    </div>
+
+                    <div class="bot-chat-area" id="bot-chat">
+                        <div class="bot-profile">
+                            <div id="bot-avatar-display"></div>
+                            <div id="bot-name-display" style="font-weight:bold; color:white;">Bot</div>
+                        </div>
+                        <div id="bot-message" class="bot-bubble">¡Buena suerte!</div>
+                    </div>
+
+                    <div id="puzzle-info" class="puzzle-info">
+                        <div style="color:white; font-weight:bold;">RETO DIARIO</div>
+                        <div style="font-size:12px; color:#ccc;">Encuentra el mejor movimiento.</div>
+                        <div id="puzzle-status" class="puzzle-status"></div>
+                    </div>
+
+                    <div class="captured-area" id="captured-w"></div>
+                    <div class="captured-area" id="captured-b"></div>
+
+                    <div class="move-history" id="move-log"></div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="undoMove()" style="flex:1; padding:10px; background:#444; color:white; border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
+                        <button onclick="resign()" style="flex:1; padding:10px; background:#c0392b; color:white; border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-flag"></i> Rendirse</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STANDARD GAME HEADER -->
+            <div class="game-header">
+                <div class="title-box">
+                    <h1 style="margin:0; font-size:24px; color:var(--accent);">Chess Pro</h1>
+                    <p style="margin:5px 0 0; color:var(--text-dim); font-size:14px;">Arcade-Z Network • Estrategia</p>
+                </div>
+                <div class="game-actions">
+                    <button id="like-btn" class="action-btn" style="color: #2ecc71;"><i class="fa-solid fa-thumbs-up"></i> <span id="like-count">0</span></button>
+                    <button id="dislike-btn" class="action-btn" style="color: #e74c3c;"><i class="fa-solid fa-thumbs-down"></i> <span id="dislike-count">0</span></button>
+                    <button class="action-btn" onclick="toggleFull()"><i class="fa-solid fa-expand"></i> Fullscreen</button>
+                </div>
+            </div>
+
+            <!-- AD CONTAINER -->
+            <div class="ad-real-container">
+                <ins class="adsbygoogle" style="display:block; width: 100%;" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div style="background: var(--bg-nav); padding: 25px; border-radius: 16px;">
+                <h3 style="margin-top:0">Sobre Chess Pro</h3>
+                <p style="color: var(--text-dim); line-height: 1.6;">
+                    El clásico juego de estrategia en su versión definitiva. Juega contra una IA avanzada con múltiples niveles de dificultad, desafía a un amigo en modo local o resuelve los retos diarios. Incluye análisis de posición en tiempo real.
+                </p>
+            </div>
+        </div>
+
+        <!-- GLOBAL SIDEBAR (RECOMMENDATIONS) -->
+        <div class="sidebar">
+            <div class="sidebar-title">Recomendados</div>
+            <!-- Se llena con global.js -->
+        </div>
+    </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+<script src="../js/avatar.js"></script>
+<script src="../js/global.js"></script>
+
+<script>
+    // --- CONFIGURACIÓN ---
+    var board = null;
+    var game = new Chess();
+    var gameMode = 'menu'; // menu, cpu, local, puzzle
+    var aiDepth = 2;
+    var currentBot = null;
+    var playerColor = 'w';
+    var puzzleSolution = [];
+    var puzzleMoveIdx = 0;
+
+    // --- PIECE SQUARE TABLES (Evaluación Posicional) ---
+    const pst = {
+        p: [
+            [0,  0,  0,  0,  0,  0,  0,  0],
+            [50, 50, 50, 50, 50, 50, 50, 50],
+            [10, 10, 20, 30, 30, 20, 10, 10],
+            [5,  5, 10, 25, 25, 10,  5,  5],
+            [0,  0,  0, 20, 20,  0,  0,  0],
+            [5, -5,-10,  0,  0,-10, -5,  5],
+            [5, 10, 10,-20,-20, 10, 10,  5],
+            [0,  0,  0,  0,  0,  0,  0,  0]
+        ],
+        n: [
+            [-50,-40,-30,-30,-30,-30,-40,-50],
+            [-40,-20,  0,  0,  0,  0,-20,-40],
+            [-30,  0, 10, 15, 15, 10,  0,-30],
+            [-30,  5, 15, 20, 20, 15,  5,-30],
+            [-30,  0, 15, 20, 20, 15,  0,-30],
+            [-30,  5, 10, 15, 15, 10,  5,-30],
+            [-40,-20,  0,  5,  5,  0,-20,-40],
+            [-50,-40,-30,-30,-30,-30,-40,-50]
+        ],
+        b: [ // Bishop
+            [-20,-10,-10,-10,-10,-10,-10,-20],
+            [-10,  0,  0,  0,  0,  0,  0,-10],
+            [-10,  0,  5, 10, 10,  5,  0,-10],
+            [-10,  5,  5, 10, 10,  5,  5,-10],
+            [-10,  0, 10, 10, 10, 10,  0,-10],
+            [-10, 10, 10, 10, 10, 10, 10,-10],
+            [-10,  5,  0,  0,  0,  0,  5,-10],
+            [-20,-10,-10,-10,-10,-10,-10,-20]
+        ],
+        r: [ // Rook
+            [  0,  0,  0,  0,  0,  0,  0,  0],
+            [  5, 10, 10, 10, 10, 10, 10,  5],
+            [ -5,  0,  0,  0,  0,  0,  0, -5],
+            [ -5,  0,  0,  0,  0,  0,  0, -5],
+            [ -5,  0,  0,  0,  0,  0,  0, -5],
+            [ -5,  0,  0,  0,  0,  0,  0, -5],
+            [ -5,  0,  0,  0,  0,  0,  0, -5],
+            [  0,  0,  0,  5,  5,  0,  0,  0]
+        ],
+        q: [ // Queen
+            [-20,-10,-10, -5, -5,-10,-10,-20],
+            [-10,  0,  0,  0,  0,  0,  0,-10],
+            [-10,  0,  5,  5,  5,  5,  0,-10],
+            [ -5,  0,  5,  5,  5,  5,  0, -5],
+            [  0,  0,  5,  5,  5,  5,  0, -5],
+            [-10,  5,  5,  5,  5,  5,  0,-10],
+            [-10,  0,  5,  0,  0,  0,  0,-10],
+            [-20,-10,-10, -5, -5,-10,-10,-20]
+        ],
+        k: [ // King (Middle game)
+            [-30,-40,-40,-50,-50,-40,-40,-30],
+            [-30,-40,-40,-50,-50,-40,-40,-30],
+            [-30,-40,-40,-50,-50,-40,-40,-30],
+            [-30,-40,-40,-50,-50,-40,-40,-30],
+            [-20,-30,-30,-40,-40,-30,-30,-20],
+            [-10,-20,-20,-20,-20,-20,-20,-10],
+            [ 20, 20,  0,  0,  0,  0, 20, 20],
+            [ 20, 30, 10,  0,  0, 10, 30, 20]
+        ]
+    };
+
+    const pieceValues = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+    // --- BOTS CONFIG ---
+    const BOTS = [
+        { 
+            id: 'jimmy', name: 'Jimmy', elo: 250, depth: 1, errorRate: 0.4, 
+            desc: 'Apenas sabe mover las piezas.',
+            phrases: { 
+                start: ["¡Hola! ¿Jugamos?", "Me gusta el ajedrez."],
+                move: ["Allá voy.", "Caballo salta...", "¿Es jaque?", "Muevo aquí."],
+                capture_self: ["¡Comí una!", "¡Ñam!", "¡Mío!"],
+                capture_enemy: ["¡Oye! ¡Esa era mía!", "¡Nooo!", "¿Por qué?"],
+                mistake: ["¡Jaja! Te equivocaste.", "¿Seguro de eso?"],
+                check: ["¡Jaque!", "¿Te asusté?"],
+                win: ["¡Gané! ¡Gané!", "¡Soy el mejor!"],
+                lose: ["¡No vale!", "Quiero la revancha.", "Buuu..."]
+            }
+        },
+        { 
+            id: 'sarah', name: 'Sarah', elo: 800, depth: 2, errorRate: 0.15, 
+            desc: 'Juega casualmente los fines de semana.',
+            phrases: { 
+                start: ["Buena suerte.", "Espero que sea divertido."],
+                move: ["Interesante...", "Veamos qué haces.", "Tomo el centro.", "Hmm..."],
+                capture_self: ["Ups, perdiste eso.", "Intercambio.", "Gracias."],
+                capture_enemy: ["Bien jugado.", "No vi eso.", "Auch."],
+                mistake: ["Creo que dejaste algo colgado.", "Uy, error."],
+                check: ["Cuidado con tu rey.", "Jaque.", "Atento."],
+                win: ["Buena partida.", "Jaque mate.", "Bien jugado."],
+                lose: ["Bien jugado.", "Me ganaste.", "Eres bueno."]
+            }
+        },
+        { 
+            id: 'oscar', name: 'Oscar', elo: 1200, depth: 3, errorRate: 0.0, 
+            desc: 'Jugador de club. Conoce algunas aperturas.',
+            phrases: { 
+                start: ["Prepárate.", "No tendré piedad.", "A ver qué traes."],
+                move: ["Desarrollando piezas.", "Controlando el tablero.", "Un movimiento sólido.", "Calculado."],
+                capture_self: ["Error táctico.", "Gracias por la pieza.", "Material gratis."],
+                capture_enemy: ["Un sacrificio interesante.", "Recuperaré eso.", "Mmm."],
+                mistake: ["Grave error.", "Eso te costará la partida.", "Blunder."],
+                check: ["Tu rey está expuesto.", "Presión.", "Jaque mate en 3... es broma."],
+                win: ["Como calculé.", "Jaque mate, amigo.", "La estrategia gana."],
+                lose: ["Imposible...", "Has mejorado.", "Buen remate."]
+            }
+        },
+        {
+            id: 'trainer', name: 'Entrenador', elo: 1200, depth: 3, errorRate: 0.0,
+            desc: 'Ajusta mi nivel para practicar.',
+            phrases: {
+                start: ["¡A entrenar!", "Muéstrame lo que sabes."],
+                move: ["Mantén la estructura.", "Controla el centro.", "Piensa antes de mover."],
+                capture_self: ["Castigando el error.", "Pieza colgada.", "Atento."],
+                capture_enemy: ["Bien visto.", "Buena táctica.", "Así se hace."],
+                mistake: ["¡Alto! Eso es un error.", "Revisa esa jugada.", "Cuidado."],
+                check: ["Protege a tu rey.", "Jaque.", "Defiéndete."],
+                win: ["Lección terminada.", "Sigue practicando.", "Jaque mate."],
+                lose: ["¡Excelente!", "Has aprendido bien.", "Buen trabajo."]
+            }
+        }
+    ];
+    currentBot = BOTS[0]; // Default
+
+    // --- CHESS PROFILE DATA ---
+    var chessProfile = {
+        username: "Jugador",
+        elo: 1200,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        history: [],
+        avatarColor: '#81b64c'
+    };
+
+    // --- FUNCIONES DE JUEGO ---
+    function toggleFull() {
+        const vp = document.getElementById('game-vp');
+        if (!document.fullscreenElement) vp.requestFullscreen();
+        else document.exitFullscreen();
+    }
+
+    function onDragStart(source, piece, position, orientation) {
+        if (game.game_over()) return false;
+        if (gameMode === 'cpu' && piece.search(/^b/) !== -1) return false; // Solo mover blancas vs CPU
+        if (gameMode === 'puzzle' && piece.search(/^b/) !== -1) return false;
+    }
+
+    function onDrop(source, target) {
+        var move = game.move({
+            from: source,
+            to: target,
+            promotion: 'q'
+        });
+
+        if (move === null) return 'snapback';
+        
+        // Player move commentary
+        if (gameMode === 'cpu' && currentBot) {
+            if (move.captured) botSpeak('capture_enemy', true); // Bot reacts to player capture
+        }
+
+        updateStatus();
+
+        if (gameMode === 'cpu') {
+            window.setTimeout(makeBestMove, 250);
+        } else if (gameMode === 'puzzle') {
+            checkPuzzleMove(move);
+        }
+    }
+
+    function onSnapEnd() {
+        board.position(game.fen());
+    }
+
+    function updateStatus() {
+        var status = '';
+        var moveColor = (game.turn() === 'b') ? 'Negras' : 'Blancas';
+
+        if (game.in_checkmate()) {
+            status = 'Juego terminado, ' + moveColor + ' están en jaque mate.';
+            showGameOver(moveColor === 'Blancas' ? 'Negras' : 'Blancas', 'Jaque Mate');
+            if(gameMode === 'cpu') botSpeak(moveColor === 'Blancas' ? 'win' : 'lose');
+        } else if (game.in_draw()) {
+            status = 'Juego terminado, tablas.';
+            showGameOver('Nadie', 'Tablas');
+        } else {
+            status = 'Turno de ' + moveColor;
+            if (game.in_check()) status += ', ¡Jaque!';
+        }
+
+        document.getElementById('turn-indicator').innerText = status.toUpperCase();
+        updateHistory();
+        updateEvalBar();
+    }
+
+    // --- AI ENGINE (Minimax + AlphaBeta) ---
+    function makeBestMove() {
+        if (game.game_over()) return;
+
+        // Opening Book (Simple Randomness for variety)
+        if (game.history().length < 4 && currentBot.elo > 500) {
+            const possibleMoves = game.moves();
+            const goodOpenings = ['e4', 'd4', 'Nf3', 'c4'];
+            const bestOpenings = possibleMoves.filter(m => goodOpenings.includes(m));
+            if (bestOpenings.length > 0 && Math.random() > 0.3) {
+                game.move(bestOpenings[Math.floor(Math.random() * bestOpenings.length)]);
+                board.position(game.fen());
+                updateStatus();
+                return;
+            }
+        }
+
+        var bestMove = null;
+        // Error rate logic
+        if (Math.random() < currentBot.errorRate) {
+            var moves = game.moves();
+            bestMove = moves[Math.floor(Math.random() * moves.length)];
+        } else {
+            // Minimax (Medio/Difícil)
+            var bestValue = -99999;
+            var moves = game.moves({verbose: true});
+            
+            // Shuffle moves to ensure variety when scores are equal
+            moves.sort(() => Math.random() - 0.5);
+            // Then sort by capture to improve pruning
+            moves.sort((a, b) => (b.captured ? 10 : 0) - (a.captured ? 10 : 0));
+
+            var bestMoves = [];
+
+            for (var i = 0; i < moves.length; i++) {
+                game.move(moves[i]);
+                var boardValue = -minimax(currentBot.depth - 1, -100000, 100000, false);
+                game.undo();
+                if (boardValue > bestValue) {
+                    bestValue = boardValue;
+                    bestMoves = [moves[i]];
+                } else if (boardValue === bestValue) {
+                    bestMoves.push(moves[i]);
+                }
+            }
+            // Pick random from best moves
+            bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+
+        // Check for player mistake (if eval swung in bot's favor significantly)
+        // Simplified: if bot captures a piece that wasn't a trade
+        if (bestMove.captured && !game.in_check()) {
+             botSpeak('capture_self');
+        }
+        
+        game.move(bestMove);
+        
+        if (game.in_check()) botSpeak('check');
+        else if (!bestMove.captured) botSpeak('move');
+
+        board.position(game.fen());
+        updateStatus();
+    }
+
+    function minimax(depth, alpha, beta, isMaximizing) {
+        if (depth === 0) return evaluateBoard(game.board());
+
+        var moves = game.moves({verbose: true});
+        if (isMaximizing) {
+            var best = -99999;
+            for (var i = 0; i < moves.length; i++) {
+                game.move(moves[i]);
+                best = Math.max(best, minimax(depth - 1, alpha, beta, !isMaximizing));
+                game.undo();
+                alpha = Math.max(alpha, best);
+                if (beta <= alpha) return best;
+            }
+            return best;
+        } else {
+            var best = 99999;
+            for (var i = 0; i < moves.length; i++) {
+                game.move(moves[i]);
+                best = Math.min(best, minimax(depth - 1, alpha, beta, !isMaximizing));
+                game.undo();
+                beta = Math.min(beta, best);
+                if (beta <= alpha) return best;
+            }
+            return best;
+        }
+    }
+
+    function evaluateBoard(board) {
+        var totalEvaluation = 0;
+        for (var i = 0; i < 8; i++) {
+            for (var j = 0; j < 8; j++) {
+                totalEvaluation += getPieceValue(board[i][j], i, j);
+            }
+        }
+        return totalEvaluation;
+    }
+
+    function getPieceValue(piece, x, y) {
+        if (piece === null) return 0;
+        var absoluteValue = pieceValues[piece.type];
+        
+        // Valor Posicional (PST)
+        if (piece.color === 'w') {
+            absoluteValue += pst[piece.type][x][y];
+        } else {
+            absoluteValue += pst[piece.type][7 - x][y]; // Mirror for black
+        }
+
+        return piece.color === 'w' ? absoluteValue : -absoluteValue;
+    }
+
+    // --- UI HELPERS ---
+    function updateHistory() {
+        const history = game.history();
+        const log = document.getElementById('move-log');
+        log.innerHTML = '';
+        for (let i = 0; i < history.length; i += 2) {
+            const num = (i / 2) + 1;
+            const w = history[i];
+            const b = history[i + 1] || '';
+            log.innerHTML += `<div class="history-row"><div class="num">${num}.</div><div class="move">${w}</div><div class="move">${b}</div></div>`;
+        }
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function updateEvalBar() {
+        const eval = evaluateBoard(game.board());
+        // Normalizar eval (-2000 a 2000) a porcentaje (0 a 100)
+        let pct = 50 + (eval / 2000) * 50;
+        pct = Math.max(5, Math.min(95, pct));
+        document.getElementById('eval-fill').style.height = pct + '%';
+    }
+
+    function drawBotFace(canvas, botId) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        
+        // Background
+        ctx.beginPath(); ctx.arc(w/2, h/2, w/2-2, 0, Math.PI*2); 
+        ctx.fillStyle = '#222'; ctx.fill(); ctx.strokeStyle = '#444'; ctx.lineWidth = 2; ctx.stroke();
+
+        if (botId === 'jimmy') {
+            // Baby face
+            ctx.fillStyle = '#ffccaa'; ctx.beginPath(); ctx.arc(w/2, h/2, w/2-5, 0, Math.PI*2); ctx.fill();
+            // Eyes
+            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(w/2-10, h/2-5, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(w/2+10, h/2-5, 3, 0, Math.PI*2); ctx.fill();
+            // Pacifier
+            ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.arc(w/2, h/2+15, 8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ecf0f1'; ctx.beginPath(); ctx.ellipse(w/2, h/2+15, 12, 6, 0, 0, Math.PI*2); ctx.fill();
+        } else if (botId === 'sarah') {
+            // Girl face
+            ctx.fillStyle = '#f1c27d'; ctx.beginPath(); ctx.arc(w/2, h/2, w/2-5, 0, Math.PI*2); ctx.fill();
+            // Hair
+            ctx.fillStyle = '#8e44ad'; 
+            ctx.beginPath(); ctx.arc(w/2, h/2-5, w/2-5, Math.PI, 0); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(w/2-20, h/2-20); ctx.lineTo(w/2-25, h/2+20); ctx.stroke(); 
+            // Eyes
+            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(w/2-8, h/2, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(w/2+8, h/2, 3, 0, Math.PI*2); ctx.fill();
+            // Smile
+            ctx.beginPath(); ctx.arc(w/2, h/2+5, 8, 0, Math.PI); ctx.stroke();
+        } else if (botId === 'oscar') {
+            // Man with beard
+            ctx.fillStyle = '#e0ac69'; ctx.beginPath(); ctx.arc(w/2, h/2, w/2-5, 0, Math.PI*2); ctx.fill();
+            // Glasses
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.rect(w/2-18, h/2-10, 14, 8); ctx.stroke();
+            ctx.beginPath(); ctx.rect(w/2+4, h/2-10, 14, 8); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(w/2-4, h/2-6); ctx.lineTo(w/2+4, h/2-6); ctx.stroke();
+            // Beard
+            ctx.fillStyle = '#5d4037';
+            ctx.beginPath(); ctx.arc(w/2, h/2+5, 18, 0, Math.PI); ctx.fill();
+        } else if (botId === 'trainer') {
+            // Trainer (Cap)
+            ctx.fillStyle = '#dcb07b'; ctx.beginPath(); ctx.arc(w/2, h/2, w/2-5, 0, Math.PI*2); ctx.fill();
+            // Cap
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath(); ctx.arc(w/2, h/2-10, w/2-5, Math.PI, 0); ctx.fill();
+            ctx.fillRect(w/2-25, h/2-15, 50, 5);
+            // Whistle
+            ctx.fillStyle = '#bdc3c7'; ctx.fillRect(w/2-5, h/2+15, 10, 8);
+            ctx.beginPath(); ctx.arc(w/2, h/2+23, 5, 0, Math.PI*2); ctx.fill();
+        }
+    }
+
+    function botSpeak(type, isReaction = false) {
+        if (!currentBot || !currentBot.phrases[type]) return;
+        const phrases = currentBot.phrases[type];
+        const msg = phrases[Math.floor(Math.random() * phrases.length)];
+        
+        // Don't spam
+        if (Math.random() > 0.6 || type === 'start' || type === 'win' || type === 'lose') {
+            const bubble = document.getElementById('bot-message');
+            bubble.style.opacity = 0;
+            setTimeout(() => {
+                bubble.innerText = msg;
+                bubble.style.opacity = 1;
+            }, 200);
+        }
+    }
+
+    // --- PROFILE LOGIC ---
+    function loadChessProfile() {
+        const saved = localStorage.getItem('chessProfile');
+        if (saved) {
+            chessProfile = JSON.parse(saved);
+        } else {
+            // Sync with global if first time
+            const globalProfile = JSON.parse(localStorage.getItem('arcadeProfile'));
+            if (globalProfile && globalProfile.name) chessProfile.username = globalProfile.name;
+        }
+        updateProfileUI();
+    }
+
+    function saveChessProfile() {
+        chessProfile.username = document.getElementById('chess-username-input').value;
+        localStorage.setItem('chessProfile', JSON.stringify(chessProfile));
+        updateProfileUI();
+    }
+
+    function updateProfileUI() {
+        document.querySelector('.menu-username').innerText = chessProfile.username;
+        document.getElementById('chess-username-input').value = chessProfile.username;
+        document.getElementById('chess-elo').innerText = Math.round(chessProfile.elo);
+        document.getElementById('stat-wins').innerText = chessProfile.wins;
+        document.getElementById('stat-losses').innerText = chessProfile.losses;
+        document.getElementById('stat-draws').innerText = chessProfile.draws;
+        
+        // Render Avatar
+        const drawAv = (cvs) => {
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = chessProfile.avatarColor;
+            ctx.beginPath(); ctx.arc(cvs.width/2, cvs.height/2, cvs.width/2, 0, Math.PI*2); ctx.fill();
+            // Simple pawn icon
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.font = (cvs.width*0.6)+'px FontAwesome';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('\uf443', cvs.width/2, cvs.height/2);
+        };
+        
+        drawAv(document.getElementById('menu-avatar'));
+        drawAv(document.getElementById('chess-profile-avatar'));
+
+        // History
+        const list = document.getElementById('chess-match-history');
+        list.innerHTML = chessProfile.history.slice().reverse().map(h => {
+            let resClass = h.result === 'win' ? 'res-win' : (h.result === 'loss' ? 'res-loss' : 'res-draw');
+            let resText = h.result === 'win' ? 'VICTORIA' : (h.result === 'loss' ? 'DERROTA' : 'TABLAS');
+            return `<div class="history-item">
+                <span>vs ${h.opponent}</span>
+                <span class="history-result ${resClass}">${resText} (${h.eloDiff >= 0 ? '+' : ''}${h.eloDiff})</span>
+            </div>`;
+        }).join('');
+    }
+
+    function randomizeChessAvatar() {
+        const colors = ['#81b64c', '#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22'];
+        chessProfile.avatarColor = colors[Math.floor(Math.random() * colors.length)];
+        updateProfileUI();
+    }
+
+    function openChessProfile() {
+        $('#start-menu').hide();
+        $('#chess-profile-modal').css('display', 'flex');
+    }
+
+    function closeChessProfile() {
+        saveChessProfile();
+        $('#chess-profile-modal').hide();
+        $('#start-menu').css('display', 'flex');
+    }
+
+    function recordGameResult(result, opponentName, opponentElo) {
+        if (gameMode !== 'cpu') return;
+        
+        let score = result === 'win' ? 1 : (result === 'draw' ? 0.5 : 0);
+        let expected = 1 / (1 + Math.pow(10, (opponentElo - chessProfile.elo) / 400));
+        let k = 32; // K-factor
+        let change = Math.round(k * (score - expected));
+        
+        chessProfile.elo += change;
+        if (result === 'win') chessProfile.wins++;
+        if (result === 'loss') chessProfile.losses++;
+        if (result === 'draw') chessProfile.draws++;
+        
+        chessProfile.history.push({
+            opponent: opponentName,
+            result: result,
+            eloDiff: change,
+            date: Date.now()
+        });
+        
+        if (chessProfile.history.length > 20) chessProfile.history.shift();
+        localStorage.setItem('chessProfile', JSON.stringify(chessProfile));
+        updateProfileUI();
+    }
+
+    // --- MENUS & MODES ---
+    function initBoard() {
+        var config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        };
+        board = Chessboard('myBoard', config);
+        $(window).resize(board.resize);
+
+        loadChessProfile();
+    }
+
+    function showBotSelection() {
+        $('#start-menu').hide();
+        $('#bot-menu').css('display', 'flex');
+        
+        const list = document.getElementById('bot-list');
+        list.innerHTML = '';
+        
+        BOTS.forEach(b => {
+            const div = document.createElement('div');
+            div.className = `bot-card ${currentBot.id === b.id ? 'selected' : ''}`;
+            div.onclick = () => selectBot(b.id);
+            div.innerHTML = `
+                <div class="bot-avatar"><canvas id="bot-cvs-${b.id}" width="50" height="50"></canvas></div>
+                <div class="bot-info">
+                    <span class="bot-name">${b.name}</span>
+                    <span class="bot-elo">ELO: ${b.elo}</span>
+                </div>
+            `;
+            list.appendChild(div);
+            // Render Avatar (Custom)
+            setTimeout(() => drawBotFace(document.getElementById(`bot-cvs-${b.id}`), b.id), 0);
+        });
+    }
+
+    function selectBot(id) {
+        currentBot = BOTS.find(b => b.id === id);
+        if (id === 'trainer') {
+            $('#trainer-settings').css('display', 'flex');
+        } else {
+            $('#trainer-settings').hide();
+        }
+        showBotSelection(); // Refresh UI
+    }
+
+    function updateTrainerElo(val) {
+        document.getElementById('trainer-elo-display').innerText = val;
+        if (currentBot && currentBot.id === 'trainer') {
+            currentBot.elo = parseInt(val);
+            // Adjust difficulty based on ELO
+            if (val < 800) { currentBot.depth = 1; currentBot.errorRate = 0.3; }
+            else if (val < 1500) { currentBot.depth = 2; currentBot.errorRate = 0.1; }
+            else { currentBot.depth = 3; currentBot.errorRate = 0.0; }
+        }
+    }
+
+    function startVsCPU() {
+        gameMode = 'cpu';
+        game.reset();
+        board.start();
+        $('#bot-menu').hide();
+        $('#bot-chat').show();
+        
+        // Setup Bot UI
+        const botDisplay = document.getElementById('bot-avatar-display');
+        botDisplay.innerHTML = '<canvas id="current-bot-canvas" width="60" height="60"></canvas>';
+        drawBotFace(document.getElementById('current-bot-canvas'), currentBot.id);
+        
+        $('#bot-name-display').text(currentBot.name);
+        botSpeak('start');
+        
+        updateStatus();
+    }
+
+    function startLocalGame() {
+        gameMode = 'local';
+        game.reset();
+        board.start();
+        $('#start-menu').hide();
+        $('#bot-chat').hide();
+        updateStatus();
+    }
+
+    function backToMenu() {
+        $('#game-over-modal').hide();
+        $('#bot-menu').hide();
+        $('#start-menu').css('display', 'flex');
+        $('#puzzle-info').hide();
+        $('#bot-chat').hide();
+        game.reset();
+        board.start();
+    }
+
+    function showGameOver(winner, reason) {
+        $('#result-text').text(winner === 'Nadie' ? 'TABLAS' : 'VICTORIA DE ' + winner.toUpperCase());
+        $('#result-sub').text(reason);
+        
+        if (gameMode === 'cpu' && currentBot) {
+            let res = winner === 'Nadie' ? 'draw' : (winner === 'Blancas' ? 'win' : 'loss'); // Asumiendo jugador es Blancas
+            recordGameResult(res, currentBot.name, currentBot.elo);
+        }
+        $('#game-over-modal').css('display', 'flex');
+    }
+
+    function undoMove() {
+        game.undo();
+        if (gameMode === 'cpu') game.undo(); // Deshacer también la de la CPU
+        board.position(game.fen());
+        updateStatus();
+    }
+
+    function resign() {
+        if (gameMode === 'menu') return;
+        showGameOver(gameMode === 'cpu' ? 'CPU' : 'OPONENTE', 'Rendición');
+    }
+
+    // --- DAILY PUZZLE ---
+    const dailyPuzzles = [
+        { fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4', moves: ['h5f7'], desc: 'Mate en 1 (Mate del Pastor)' },
+        { fen: 'r1b3kr/ppp1Bp1p/1b6/n2P4/2p3q1/2Q2N2/P4PPP/RN2R1K1 w - - 1 0', moves: ['e7f8', 'kxf8', 'c3h8'], desc: 'Mate en 2' }
+    ];
+
+    function startDailyPuzzle() {
+        gameMode = 'puzzle';
+        const puzzle = dailyPuzzles[Math.floor(Math.random() * dailyPuzzles.length)]; // Random por ahora
+        game.load(puzzle.fen);
+        board.position(puzzle.fen);
+        puzzleSolution = puzzle.moves;
+        puzzleMoveIdx = 0;
+        
+        $('#start-menu').hide();
+        $('#puzzle-info').show();
+        $('#puzzle-status').text(puzzle.desc).removeClass('correct wrong');
+        updateStatus();
+    }
+
+    function checkPuzzleMove(move) {
+        const expected = puzzleSolution[puzzleMoveIdx];
+        // Formato simple de comparación (origen+destino)
+        const moveStr = move.from + move.to;
+        
+        if (moveStr === expected) {
+            puzzleMoveIdx++;
+            if (puzzleMoveIdx >= puzzleSolution.length) {
+                $('#puzzle-status').text("¡CORRECTO! RETO COMPLETADO").addClass('correct');
+                setTimeout(() => showGameOver('JUGADOR', 'Reto Completado'), 1000);
+            } else {
+                // Si hay respuesta de la CPU en el puzzle (para mates en N > 1)
+                // Aquí simplificamos asumiendo que el puzzle define movimientos de ambos lados si es necesario
+                // O implementamos lógica para mover la pieza negra automáticamente
+                var nextMove = puzzleSolution[puzzleMoveIdx];
+                if (nextMove) {
+                    game.move({from: nextMove.substring(0,2), to: nextMove.substring(2,4)});
+                    board.position(game.fen());
+                    puzzleMoveIdx++;
+                }
+            }
+        } else {
+            $('#puzzle-status').text("INCORRECTO. INTENTA DE NUEVO").addClass('wrong');
+            setTimeout(() => {
+                game.undo();
+                board.position(game.fen());
+            }, 500);
+        }
+    }
+
+    $(document).ready(initBoard);
+</script>
+</body>
+</html>

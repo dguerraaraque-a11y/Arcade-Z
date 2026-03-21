@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor Arcade-Z | Cargando...</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0f0f11;
+            --bg-nav: #1a1a1d;
+            --bg-card: #252529;
+            --accent: #00fbff;
+            --text-dim: #b3b3b3;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-body);
+            color: white; font-family: 'Inter', sans-serif;
+            display: flex; flex-direction: column; height: 100vh;
+            overflow: hidden;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+        nav {
+            background: var(--bg-nav);
+            padding: 15px 25px;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #2d2d33;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .nav-logo { color: var(--accent); font-weight: 900; text-decoration: none; font-size: 24px; text-shadow: 0 0 10px var(--accent); }
+        .playing-status { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .nav-profile-container { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-user-name { font-weight: 700; font-size: 14px; }
+
+        .main-player {
+            display: flex; 
+            flex-direction: column;
+            flex-grow: 1; padding: 25px; gap: 25px;
+            overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+        }
+
+        .game-viewport {
+            flex-grow: 1; position: relative;
+            background: #000; border-radius: 12px;
+            overflow: hidden; border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+            animation: fadeIn 0.6s ease-out 0.2s backwards;
+        }
+
+        #game-frame { width: 100%; height: 100%; border: none; }
+
+        #loader {
+            position: absolute; inset: 0; z-index: 20;
+            background: linear-gradient(135deg, #1a1a1d 0%, #000 100%);
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; transition: opacity 0.5s;
+        }
+        #loader.hidden { opacity: 0; pointer-events: none; }
+        .loading-bar-bg { width: 250px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 20px; }
+        .loading-bar-fill { width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 15px var(--accent); transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
+        #play-btn { display: none; margin-top: 30px; background: var(--accent); color: #000; border: none; padding: 12px 40px; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; animation: popIn 0.5s ease-out; }
+
+        .recommendations-area {
+            animation: fadeIn 0.6s ease-out 0.4s backwards;
+            margin-top: 20px;
+        }
+
+        #recommendations-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .sidebar-card {
+            background: var(--bg-card); border-radius: 10px; padding: 10px;
+            display: flex; gap: 15px; cursor: pointer; transition: 0.3s;
+            border: 1px solid #333;
+        }
+        .sidebar-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+
+        .game-area-wrapper {
+            display: flex; flex-direction: column;
+        }
+
+        .controls {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; background: var(--bg-nav); margin-top: 20px; border-radius: 12px;
+            animation: fadeIn 0.6s ease-out 0.3s backwards;
+        }
+
+        .action-btn {
+            background: #333; border: none; color: white; padding: 12px 18px;
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .action-btn:hover { background: var(--accent); color: black; }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <nav>
+        <a href="index.html" class="nav-logo">ARCADE-Z</a>
+        <div class="playing-status">Estás jugando: <span id="game-title" style="color:white">...</span></div>
+        <div class="nav-profile-container">
+            <span class="nav-user-name">JUGADOR</span>
+            <canvas id="nav-avatar" width="40" height="40"></canvas>
+        </div>
+    </nav>
+
+    <div class="main-player">
+        <div class="game-area-wrapper">
+            <div class="game-viewport">
+                <div id="loader">
+                    <h2 id="loader-title" style="margin:0; font-size: 24px; color: var(--accent); text-shadow: 0 0 10px var(--accent);">CARGANDO JUEGO...</h2>
+                    <div class="loading-bar-bg"><div id="loader-bar" class="loading-bar-fill"></div></div>
+                    <button id="play-btn" onclick="enterGame()">JUGAR</button>
+                </div>
+                <iframe id="game-frame" src="" allowfullscreen></iframe>
+            </div>
+
+            <div class="controls">
+                <div>
+                    <h2 id="footer-title" style="margin:0">Cargando Juego...</h2>
+                    <span id="footer-desc" style="color:var(--text-dim); font-size:12px">Arcade-Z Network</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn" onclick="toggleFull()"><i class="fas fa-expand"></i></button>
+                    <button class="action-btn" style="color:#ff4747" title="Añadir a Favoritos"><i class="fas fa-heart"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="recommendations-area">
+            <h3 style="margin-top:0; border-left: 4px solid var(--accent); padding-left: 10px;">También te podría gustar</h3>
+            <div id="recommendations-list"></div>
+        </div>
+    </div>
+
+    <script src="src/js/avatar.js"></script>
+    <script src="src/js/global.js"></script>
+    <script>
+        // --- LÓGICA DE CARGA DEL JUEGO ---
+        function loadGame() {
+            const params = new URLSearchParams(window.location.search);
+            const gameKey = params.get('game');
+            const frame = document.getElementById('game-frame');
+            const title = document.getElementById('game-title');
+            const footerTitle = document.getElementById('footer-title');
+            const footerDesc = document.getElementById('footer-desc');
+            const loaderTitle = document.getElementById('loader-title');
+            const loaderBar = document.getElementById('loader-bar');
+
+            const gameData = gamesDB.find(g => g.id === gameKey);
+
+            if (gameData) {
+                // Actualizar UI
+                title.innerText = gameData.title;
+                footerTitle.innerText = gameData.title;
+                footerDesc.innerText = gameData.category;
+                loaderTitle.innerText = `CARGANDO ${gameData.title.toUpperCase()}`;
+                document.title = gameData.title + " | Arcade-Z";
+
+                // Carga más fluida
+                loaderBar.style.transition = 'width 4s cubic-bezier(0.22, 1, 0.36, 1)';
+                setTimeout(() => { loaderBar.style.width = '90%'; }, 100);
+                
+                // Cargar Iframe
+                frame.src = gameData.path + gameData.url;
+                frame.onload = () => {
+                    loaderBar.style.transition = 'width 0.5s ease-out';
+                    loaderBar.style.width = '100%';
+                    setTimeout(() => {
+                        document.getElementById('play-btn').style.display = 'block';
+                        loaderTitle.style.display = 'none';
+                    }, 500);
+                };
+
+            } else {
+                // Redirigir a la página 404 si el juego no se encuentra
+                window.location.href = '404.html';
+            }
+        }
+
+        function enterGame() {
+            const loader = document.getElementById('loader');
+            loader.classList.add('hidden');
+        }
+
+        function toggleFull() {
+            const frame = document.getElementById('game-frame');
+            if (frame.requestFullscreen) frame.requestFullscreen();
+        }
+
+        // --- ANIMACIÓN DE FONDO ---
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeBg() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<50; i++) {
+                particles.push({
+                    x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height,
+                    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
+                    size: Math.random() * 2 + 1,
+                    color: Math.random() > 0.5 ? '#00fbff' : '#ff003c'
+                });
+            }
+        }
+
+        function animateBg() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
+                bgCtx.fillStyle = p.color;
+                bgCtx.beginPath(); bgCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); bgCtx.fill();
+            });
+            requestAnimationFrame(animateBg);
+        }
+
+        function loadPlayRecommendations() {
+            const container = document.getElementById('recommendations-list');
+            if (!container) return;
+            container.innerHTML = ''; // Limpiar
+            const currentGameId = new URLSearchParams(window.location.search).get('game');
+            
+            const games = gamesDB
+                .filter(g => g.id !== currentGameId) // Excluir juego actual
+                .sort(() => 0.5 - Math.random()) // Mezclar
+                .slice(0, 5); // Tomar 5
+
+            games.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'sidebar-card';
+                card.onclick = () => window.location.href = `play.html?game=${game.id}`;
+                card.innerHTML = `
+                    <div style="width:80px; height:60px; border-radius:5px; background:${game.color}20; display:flex; align-items:center; justify-content:center; font-size:24px; color:${game.color};">${game.iconClass ? `<i class="${game.iconClass}"></i>` : game.icon}</div>
+                    <div>
+                        <b style="font-size:14px;">${game.title}</b>
+                        <p style="font-size:12px; color:var(--text-dim); margin:0;">${game.category}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- INICIALIZACIÓN ---
+        window.onload = () => {
+            loadGame();
+            loadPlayRecommendations();
+            resizeBg();
+            animateBg();
+        };
+        window.onresize = resizeBg;
+    </script>
+</body>
+</html>

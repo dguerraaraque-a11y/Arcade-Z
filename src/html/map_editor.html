@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade-Z Map Editor v3.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Press+Start+2P&family=Lobster&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-panel: #252526;
+            --bg-input: #3c3c3c;
+            --accent: #007acc; /* VS Code Blue */
+            --text: #cccccc;
+            --text-muted: #858585;
+            --border: #3e3e42;
+            --hover: #2a2d2e;
+            --header-bg: #2d2d30;
+        }
+
+        body { margin: 0; overflow: hidden; background: var(--bg-dark); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* --- MENUBAR --- */
+        #menubar {
+            height: 30px; background: #333333; display: flex; align-items: center; padding: 0 10px; font-size: 13px; user-select: none;
+        }
+        .menu-brand { font-weight: bold; color: var(--accent); margin-right: 20px; }
+        .menu-item {
+            padding: 5px 10px; cursor: pointer; position: relative;
+        }
+        .menu-item:hover { background: #505050; color: white; }
+        
+        .dropdown {
+            position: absolute; top: 100%; left: 0; background: #252526; border: 1px solid #454545;
+            min-width: 150px; display: none; z-index: 1000; box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .dropdown.show { display: block; }
+        .dropdown-item {
+            padding: 8px 15px; cursor: pointer; display: flex; justify-content: space-between;
+        }
+        .dropdown-item:hover { background: #094771; color: white; }
+        .dropdown-separator { height: 1px; background: #454545; margin: 4px 0; }
+        .shortcut { color: #888; font-size: 11px; }
+
+        /* --- TOOLBAR --- */
+        #toolbar {
+            height: 40px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 15px; gap: 10px; user-select: none;
+        }
+        
+        .tool-btn {
+            width: 30px; height: 30px; border-radius: 4px; border: 1px solid transparent;
+            background: transparent; color: var(--text); cursor: pointer; display: flex;
+            justify-content: center; align-items: center; font-size: 14px; transition: 0.2s;
+        }
+        .tool-btn:hover { background: #3e3e42; }
+        .tool-btn.active { background: #3e3e42; border-color: var(--accent); color: white; }
+        .separator { width: 1px; height: 24px; background: var(--border); margin: 0 5px; }
+        
+        .action-btn {
+            background: var(--accent); color: white; border: none; padding: 6px 15px;
+            border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; margin-left: auto;
+        }
+        .action-btn:hover { filter: brightness(1.1); }
+
+        /* --- WORKSPACE --- */
+        #workspace { flex: 1; display: flex; overflow: hidden; position: relative; }
+        
+        #canvas-area { flex: 1; position: relative; overflow: hidden; background: #111; cursor: crosshair; }
+        #game-canvas { display: block; width: 100%; height: 100%; }
+        
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: 300px; background: var(--bg-panel); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 10;
+            font-size: 12px;
+        }
+        .sidebar-header {
+            padding: 10px 15px; font-weight: bold; background: #2d2d30;
+            border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar-content { overflow-y: auto; flex: 1; }
+        
+        /* Inspector Sections */
+        .sidebar-section { border-bottom: 1px solid var(--border); }
+        .section-header {
+            padding: 6px 10px; background: var(--header-bg); font-weight: 600; 
+            color: var(--text); cursor: pointer; display: flex; align-items: center; user-select: none;
+        }
+        .section-header::before { content: '▼'; font-size: 8px; margin-right: 6px; display: inline-block; transition: 0.2s; }
+        .section-header.collapsed::before { transform: rotate(-90deg); }
+        
+        .section-content { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .section-content.hidden { display: none; }
+
+        .prop-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+        .prop-label { color: var(--text-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .prop-value { flex: 1.5; min-width: 0; }
+
+        .input-control {
+            width: 100%; background: var(--bg-input); border: 1px solid transparent; 
+            color: var(--text); padding: 4px 6px; font-size: 12px; border-radius: 2px; box-sizing: border-box;
+        }
+        .input-control:focus { border-color: var(--accent); outline: none; background: #444; }
+        
+        .vec2-row { display: flex; gap: 5px; }
+        .vec2-item { flex: 1; display: flex; align-items: center; background: var(--bg-input); border-radius: 2px; padding-right: 4px; border: 1px solid transparent; }
+        .vec2-item:focus-within { border-color: var(--accent); }
+        .vec2-label { font-size: 10px; color: #888; padding: 0 6px; cursor: ew-resize; user-select: none; font-weight: bold; }
+        .vec2-input { background: transparent; border: none; color: var(--text); width: 100%; padding: 4px 0; font-size: 12px; text-align: right; outline: none; }
+
+        .btn-full { width: 100%; background: #383838; color: white; border: 1px solid var(--border); padding: 6px; cursor: pointer; font-size: 12px; border-radius: 2px; margin-top: 5px; }
+        .btn-full:hover { background: #444; }
+        .btn-danger { background: #602020; border-color: #803030; }
+        .btn-danger:hover { background: #802020; }
+
+        /* --- TASK GRID SELECTOR --- */
+        .task-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .task-option {
+            background: #333; border: 1px solid transparent; padding: 8px;
+            text-align: center; cursor: pointer; border-radius: 4px;
+        }
+        .task-option:hover { background: #444; }
+        .task-option.selected { border-color: var(--accent); background: #252526; }
+        .task-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        .task-name { font-size: 10px; color: #aaa; }
+
+        /* --- OVERLAYS --- */
+        #start-screen {
+            position: fixed; inset: 0; background: #1e1e1e; z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .start-card {
+            background: #252526; padding: 40px; border-radius: 8px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border);
+        }
+        .start-btn {
+            display: block; width: 200px; padding: 12px; margin: 10px auto;
+            background: #333; border: 1px solid var(--border); color: white;
+            cursor: pointer; border-radius: 4px; font-weight: bold;
+        }
+        .start-btn:hover { background: #444; border-color: var(--accent); }
+        .start-btn.primary { background: var(--accent); border-color: var(--accent); }
+
+        #toast-container {
+            position: fixed; bottom: 20px; right: 20px; z-index: 200;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .toast {
+            background: #252526; color: white; padding: 10px 20px; border-radius: 4px;
+            border-left: 4px solid var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-size: 13px; animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        #coord-display {
+            position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.5);
+            padding: 5px 10px; border-radius: 4px; font-size: 11px; pointer-events: none;
+        }
+
+        /* CHAR SELECTOR */
+        .char-grid { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
+        .char-option { border: 2px solid #444; border-radius: 10px; padding: 15px; cursor: pointer; transition: 0.2s; text-align: center; width: 100px; }
+        .char-option:hover, .char-option.selected { border-color: var(--accent); background: rgba(0, 122, 204, 0.1); }
+        .char-preview { width: 60px; height: 60px; margin: 0 auto 10px; }
+        /* SVG simple de Among Us para la preview */
+        .amongus-preview { background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30 20 h40 a15 15 0 0 1 15 15 v40 a10 10 0 0 1 -10 10 h-10 v10 a5 5 0 0 1 -10 0 v-10 h-10 v10 a5 5 0 0 1 -10 0 v-10 h-5 a15 15 0 0 1 -15 -15 v-40 a15 15 0 0 1 15 -15 z" fill="%23C51111"/><rect x="45" y="30" width="45" height="25" rx="10" fill="%2380daff" stroke="black" stroke-width="2"/></svg>') no-repeat center/contain; }
+    </style>
+</head>
+<body>
+
+    <!-- START SCREEN -->
+    <div id="start-screen">
+        <div class="start-card">
+            <h1 style="margin-top:0; color:var(--accent)">MAP EDITOR v3</h1>
+            <button class="start-btn primary" onclick="newProject()">NUEVO PROYECTO</button>
+            <button class="start-btn" onclick="document.getElementById('jsonLoader').click()">CARGAR JSON</button>
+            <div id="resume-btn" style="display:none">
+                <div style="height:1px; background:#444; margin:15px 0;"></div>
+                <button class="start-btn" onclick="loadAutoSave()" style="color:#4caf50; border-color:#4caf50">CONTINUAR SESIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIDDEN INPUTS -->
+    <input type="file" id="imgLoader" accept="image/*" style="display:none">
+    <input type="file" id="jsonLoader" accept=".json" style="display:none">
+    <input type="file" id="uiBgLoader" accept="image/*" style="display:none">
+
+    <!-- APP UI -->
+    <div id="menubar">
+        <div class="menu-brand"><i class="fa-solid fa-gamepad"></i> ARCADE-Z EDITOR</div>
+        
+        <div class="menu-item" onclick="toggleMenu('file')">ARCHIVO
+            <div class="dropdown" id="menu-file">
+                <div class="dropdown-item" onclick="newProject()">Nuevo Proyecto</div>
+                <div class="dropdown-item" onclick="document.getElementById('jsonLoader').click()">Abrir JSON...</div>
+                <div class="dropdown-separator"></div>
+                <div class="dropdown-item" onclick="exportData()">Guardar / Exportar <span class="shortcut">Ctrl+S</span></div>
+            </div>
+        </div>
+
+        <div class="menu-item" onclick="toggleMenu('map')">MAPA
+            <div class="dropdown" id="menu-map">
+                <div class="dropdown-item" onclick="document.getElementById('imgLoader').click()">Cambiar Fondo...</div>
+                <div class="dropdown-separator"></div>
+                <div class="dropdown-item" onclick="if(confirm('¿Borrar todo?')) { mapData.walls=[]; mapData.tasks=[]; init(); }">Limpiar Mapa</div>
+            </div>
+        </div>
+
+        <div class="menu-item" onclick="toggleMenu('gui')">GUI
+            <div class="dropdown" id="menu-gui">
+                <div class="dropdown-item" onclick="toggleGrid()">Mostrar Cuadrícula <span id="icon-grid"></span></div>
+                <div class="dropdown-item" onclick="toggleSnap()">Ajustar a Guías (Snap) <span id="icon-snap"></span></div>
+                <div class="dropdown-separator"></div>
+                <div class="dropdown-item" onclick="toggleUI()">Ocultar Interfaz (F11)</div>
+            </div>
+        </div>
+
+        <div class="menu-item" onclick="toggleEditorMode()">
+            <span id="mode-label" style="font-weight:bold; color:#fff; background:#444; padding:2px 6px; border-radius:4px;">MODO MAPA</span>
+        </div>
+    </div>
+
+    <div id="toolbar">
+      <div id="tools-map" style="display:flex; gap:10px; align-items:center;">
+        <button class="tool-btn" onclick="setTool('select')" id="btn-select" title="Seleccionar (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
+        <button class="tool-btn" onclick="setTool('pan')" id="btn-pan" title="Mover Mapa (Espacio)"><i class="fa-solid fa-hand"></i></button>
+        <div class="separator"></div>
+        <button class="tool-btn" onclick="setTool('wall')" id="btn-wall" title="Pared Rectangular"><i class="fa-regular fa-square"></i></button>
+        <button class="tool-btn" onclick="setTool('wall_line')" id="btn-wall_line" title="Pared Línea"><i class="fa-solid fa-slash"></i></button>
+        <button class="tool-btn" onclick="setTool('wall_circle')" id="btn-wall_circle" title="Pared Circular"><i class="fa-regular fa-circle"></i></button>
+        <button class="tool-btn" onclick="setTool('zone')" id="btn-zone" title="Zona Tarea (Polígono)"><i class="fa-solid fa-draw-polygon"></i></button>
+        <div class="separator"></div>
+        <button class="tool-btn" onclick="setTool('task')" id="btn-task" title="Tarea"><i class="fa-solid fa-bolt"></i></button>
+        <button class="tool-btn" onclick="setTool('vent')" id="btn-vent" title="Ventila"><i class="fa-solid fa-wind"></i></button>
+        <button class="tool-btn" onclick="setTool('spawn')" id="btn-spawn" title="Spawn"><i class="fa-solid fa-user"></i></button>
+        <button class="tool-btn" onclick="setTool('seat')" id="btn-seat" title="Asiento"><i class="fa-solid fa-chair"></i></button>
+        <button class="tool-btn" onclick="setTool('game_pc')" id="btn-game_pc" title="PC Partida"><i class="fa-solid fa-laptop-code"></i></button>
+        <button class="tool-btn" onclick="setTool('customize_pc')" id="btn-customize_pc" title="PC Custom"><i class="fa-solid fa-tshirt"></i></button>
+        <button class="tool-btn" onclick="setTool('cam')" id="btn-cam" title="Cámara"><i class="fa-solid fa-video"></i></button>
+        <button class="tool-btn" onclick="setTool('waypoint')" id="btn-waypoint" title="Ruta Bot (Waypoint)"><i class="fa-solid fa-map-pin"></i></button>
+        <button class="tool-btn" onclick="setTool('animation')" id="btn-animation" title="Animación / Sprite"><i class="fa-solid fa-film"></i></button>
+        <div class="separator"></div>
+        <button class="tool-btn" onclick="toggleTest()" id="btn-test" title="Probar Mapa (T)"><i class="fa-solid fa-gamepad"></i></button>
+      </div>
+      
+      <div id="tools-ui" style="display:none; gap:10px; align-items:center;">
+        <button class="tool-btn" onclick="setTool('ui_select')" id="btn-ui_select" title="Seleccionar"><i class="fa-solid fa-arrow-pointer"></i></button>
+        <button class="tool-btn" onclick="setTool('ui_panel')" id="btn-ui_panel" title="Panel / Rectángulo"><i class="fa-regular fa-square"></i></button>
+        <button class="tool-btn" onclick="setTool('ui_button')" id="btn-ui_button" title="Botón"><i class="fa-solid fa-rectangle-list"></i></button>
+        <button class="tool-btn" onclick="setTool('ui_label')" id="btn-ui_label" title="Texto / Label"><i class="fa-solid fa-font"></i></button>
+        <button class="tool-btn" onclick="setTool('ui_image')" id="btn-ui_image" title="Imagen"><i class="fa-regular fa-image"></i></button>
+      </div>
+    </div>
+
+    <div id="workspace">
+        <div id="canvas-area">
+            <canvas id="game-canvas"></canvas>
+            <div id="coord-display">X: 0 Y: 0</div>
+        </div>
+        
+        <div id="sidebar">
+            <div class="sidebar-header">INSPECTOR <i class="fa-solid fa-sliders"></i></div>
+            <div id="sidebar-content" class="sidebar-content">
+                <div style="color:#666; text-align:center; margin-top:20px;">
+                    Selecciona una herramienta o un objeto.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARACTER SELECTION MODAL -->
+    <div id="char-select-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; justify-content:center; align-items:center;" onclick="if(event.target === this) closeCharSelect()">
+        <div class="start-card" style="width: 400px;">
+            <h2 style="margin-top:0; color:var(--accent)">ELIGE PERSONAJE</h2>
+            <div class="char-grid">
+                <div class="char-option selected" onclick="selectChar('amongus')">
+                    <div class="char-preview amongus-preview"></div>
+                    <span>Among Us</span>
+                </div>
+            </div>
+            <button class="start-btn primary" onclick="confirmTest()">JUGAR</button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // --- CORE VARIABLES ---
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-area');
+        
+        let mapImage = new Image();
+        let mapData = {
+            walls: [], tasks: [], vents: [], spawns: [], cameras: [], zones: [], waypoints: [], animations: [], uis: [], seats: [], game_pcs: [], customize_pcs: [],
+            emergency: {x:0, y:0}
+        };
+        
+        // Viewport Transform (Zoom/Pan)
+        let transform = { x: 0, y: 0, scale: 1 };
+        let isDragging = false;
+        let lastMouse = { x: 0, y: 0 };
+        let isSpacePressed = false;
+
+        // Tools
+        let currentTool = 'select';
+        let isDrawing = false;
+        let startPos = { x: 0, y: 0 };
+        let temporaryEffects = [];
+        let currentPoly = []; // For zones
+        let selectedObj = null;
+
+        // UI Editor Variables
+        let editorMode = 'map'; // 'map' or 'ui'
+        let currentUiId = null;
+
+        // Settings for new objects
+        let toolSettings = {
+            taskType: 'wires'
+        };
+
+        // Test Mode
+        let isTesting = false;
+        let testPlayer = { x: 0, y: 0, w: 30, h: 30, color: '#00ff00', speed: 5 };
+        let inputKeys = {};
+
+        // GUI Settings
+        let showGrid = false;
+        let snapToGrid = false;
+        let gridSize = 50;
+
+        // Fonts
+        const FONTS = [
+            { id: 'Arial', label: 'Arial (Default)' },
+            { id: 'Roboto', label: 'Roboto' },
+            { id: 'Montserrat', label: 'Montserrat' },
+            { id: 'Orbitron', label: 'Orbitron (Sci-Fi)' },
+            { id: '"Press Start 2P"', label: 'Pixel Art' },
+            { id: 'Lobster', label: 'Lobster (Cursive)' },
+            { id: 'Oswald', label: 'Oswald' },
+            { id: 'Courier New', label: 'Monospace' }
+        ];
+
+        // UI Element Types
+        const UI_TYPES = [
+            { id: 'panel', icon: 'fa-regular fa-square', label: 'Panel', def: { w: 200, h: 150, color: '#333333' } },
+            { id: 'button', icon: 'fa-solid fa-rectangle-list', label: 'Botón', def: { w: 120, h: 40, color: '#007acc', text: 'Button' } },
+            { id: 'label', icon: 'fa-solid fa-font', label: 'Texto', def: { w: 100, h: 30, color: 'transparent', text: 'Label', fontSize: 16 } },
+            { id: 'image', icon: 'fa-regular fa-image', label: 'Imagen', def: { w: 100, h: 100, color: '#555', src: '' } },
+            { id: 'checkbox', icon: 'fa-regular fa-check-square', label: 'Checkbox', def: { w: 20, h: 20, color: '#333' } },
+            { id: 'input', icon: 'fa-solid fa-i-cursor', label: 'Input', def: { w: 150, h: 30, color: '#222', text: '' } },
+            { id: 'progress', icon: 'fa-solid fa-bars-progress', label: 'Barra', def: { w: 200, h: 20, color: '#333', borderColor: '#fff', borderWidth: 1, value: 50 } },
+            { id: 'slider', icon: 'fa-solid fa-sliders', label: 'Slider', def: { w: 150, h: 20, color: '#444', value: 50 } },
+            { id: 'toggle', icon: 'fa-solid fa-toggle-on', label: 'Switch', def: { w: 50, h: 25, color: '#333', value: false, borderRadius: 12 } },
+            { id: 'dropdown', icon: 'fa-solid fa-caret-down', label: 'Dropdown', def: { w: 150, h: 30, color: '#222', text: 'Select...' } },
+            { id: 'textarea', icon: 'fa-solid fa-paragraph', label: 'Área Texto', def: { w: 200, h: 100, color: '#222', text: '' } },
+            { id: 'circle', icon: 'fa-regular fa-circle', label: 'Círculo', def: { w: 50, h: 50, color: '#e74c3c', borderRadius: 50 } }
+        ];
+
+        // Task Types Definition
+        const TASK_TYPES = [
+            { id: 'wires', icon: '🔌', label: 'Cables' },
+            { id: 'download', icon: '⬇️', label: 'Descarga' },
+            { id: 'card', icon: '💳', label: 'Tarjeta' },
+            { id: 'trash', icon: '🗑️', label: 'Basura' },
+            { id: 'shields', icon: '🛡️', label: 'Escudos' },
+            { id: 'asteroids', icon: '☄️', label: 'Asteroides' },
+            { id: 'scan', icon: '🏥', label: 'Escáner' },
+            { id: 'fuel', icon: '⛽', label: 'Gasolina' },
+            { id: 'calibrate', icon: '⚙️', label: 'Calibrar' },
+            { id: 'divert_power', icon: '⚡', label: 'Desviar' },
+            { id: 'unlock_manifolds', icon: '🔢', label: 'Teclado' },
+            { id: 'start_reactor', icon: '☢️', label: 'Reactor' },
+            { id: 'align_engine', icon: '📐', label: 'Motor' },
+            { id: 'chart_course', icon: '🚀', label: 'Rumbo' },
+            { id: 'stabilize_steering', icon: '🧭', label: 'Navegación' },
+            { id: 'clean_filter', icon: '🍂', label: 'Filtro' },
+            { id: 'inspect_sample', icon: '🧪', label: 'Muestras' }
+        ];
+
+        // --- INITIALIZATION ---
+        function init() {
+            resize();
+            window.addEventListener('resize', resize);
+            requestAnimationFrame(loop);
+            
+            if(localStorage.getItem('arcade_map_autosave')) {
+                document.getElementById('resume-btn').style.display = 'block';
+            }
+        }
+
+        function resize() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        // --- PROJECT MANAGEMENT ---
+        function newProject() {
+            mapData = { walls: [], tasks: [], vents: [], spawns: [], cameras: [], zones: [], waypoints: [], animations: [], uis: [], seats: [], game_pcs: [], customize_pcs: [], emergency: {x:0, y:0} };
+            document.getElementById('imgLoader').click(); // Then ask for image
+        }
+
+        document.getElementById('imgLoader').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                mapImage.src = evt.target.result;
+                mapImage.onload = () => {
+                    document.getElementById('start-screen').style.display = 'none';
+                    // Center map
+                    transform.scale = Math.min((canvas.width-50)/mapImage.width, (canvas.height-50)/mapImage.height);
+                    transform.x = (canvas.width - mapImage.width * transform.scale) / 2;
+                    transform.y = (canvas.height - mapImage.height * transform.scale) / 2;
+                    showToast('Proyecto creado', 'success');
+                };
+            };
+            reader.readAsDataURL(file);
+        };
+
+        document.getElementById('jsonLoader').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    mapData = JSON.parse(evt.target.result);
+                    if(!mapData.waypoints) mapData.waypoints = []; // Compatibilidad
+                    if(!mapData.animations) mapData.animations = [];
+                    if(!mapData.uis) mapData.uis = [];
+                    if(!mapData.seats) mapData.seats = [];
+                    if(!mapData.game_pcs) mapData.game_pcs = [];
+                    if(!mapData.customize_pcs) mapData.customize_pcs = [];
+                    showToast('Datos cargados. Selecciona la imagen del mapa.', 'info');
+                    document.getElementById('imgLoader').click();
+                } catch(err) { showToast('Error JSON', 'error'); }
+            };
+            reader.readAsText(file);
+        };
+
+        document.getElementById('uiBgLoader').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const ui = mapData.uis.find(u => u.id === currentUiId);
+                if(ui) { ui.backgroundImage = evt.target.result; autoSave(); renderSidebar(); }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function loadAutoSave() {
+            try {
+                mapData = JSON.parse(localStorage.getItem('arcade_map_autosave'));
+                if(!mapData.waypoints) mapData.waypoints = [];
+                if(!mapData.animations) mapData.animations = [];
+                if(!mapData.uis) mapData.uis = [];
+                if(!mapData.seats) mapData.seats = [];
+                if(!mapData.game_pcs) mapData.game_pcs = [];
+                if(!mapData.customize_pcs) mapData.customize_pcs = [];
+                showToast('Autoguardado cargado. Selecciona imagen.', 'info');
+                document.getElementById('imgLoader').click();
+            } catch(e) { console.error(e); }
+        }
+
+        function autoSave() {
+            localStorage.setItem('arcade_map_autosave', JSON.stringify(mapData));
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(mapData));
+            const node = document.createElement('a');
+            node.href = dataStr;
+            node.download = "map_data.json";
+            node.click();
+            showToast('Mapa exportado', 'success');
+        }
+
+        // --- MENU FUNCTIONS ---
+        function toggleMenu(id) {
+            // Close others
+            document.querySelectorAll('.dropdown').forEach(d => {
+                if(d.id !== 'menu-'+id) d.classList.remove('show');
+            });
+            document.getElementById('menu-'+id).classList.toggle('show');
+        }
+        
+        // Close menus on click outside
+        window.addEventListener('click', (e) => {
+            if(!e.target.closest('.menu-item')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        function toggleGrid() { showGrid = !showGrid; document.getElementById('icon-grid').innerText = showGrid ? '✔' : ''; }
+        function toggleSnap() { snapToGrid = !snapToGrid; document.getElementById('icon-snap').innerText = snapToGrid ? '✔' : ''; }
+        function toggleUI() {
+            const ui = document.getElementById('sidebar');
+            ui.style.display = ui.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function toggleEditorMode() {
+            editorMode = editorMode === 'map' ? 'ui' : 'map';
+            document.getElementById('mode-label').innerText = editorMode === 'map' ? 'MODO MAPA' : 'MODO UI';
+            document.getElementById('mode-label').style.background = editorMode === 'map' ? '#444' : '#e67e22';
+            
+            document.getElementById('tools-map').style.display = editorMode === 'map' ? 'flex' : 'none';
+            document.getElementById('tools-ui').style.display = editorMode === 'ui' ? 'flex' : 'none';
+            
+            selectedObj = null;
+            renderSidebar();
+            
+            if(editorMode === 'ui') {
+                setTool('ui_select');
+                // Create default UI if none
+                if(mapData.uis.length === 0) createNewUi();
+                else if(!currentUiId) currentUiId = mapData.uis[0].id;
+            } else {
+                setTool('select');
+            }
+        }
+
+        function createNewUi() {
+            const name = prompt("Nombre de la nueva UI (ej: MenuPrincipal):", "Nueva UI");
+            if(!name) return;
+            const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now().toString().slice(-4);
+            mapData.uis.push({ id, name, width: 800, height: 600, background: '#111111', elements: [] });
+            currentUiId = id;
+            renderSidebar();
+            autoSave();
+        }
+
+        // --- INPUT HANDLING ---
+        function getWorldPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left - transform.x) / transform.scale,
+                y: (e.clientY - rect.top - transform.y) / transform.scale
+            };
+        }
+
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomIntensity = 0.1;
+            const wheel = e.deltaY < 0 ? 1 : -1;
+            const zoom = Math.exp(wheel * zoomIntensity);
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const newScale = Math.min(Math.max(0.05, transform.scale * zoom), 20);
+            
+            transform.x = mouseX - (mouseX - transform.x) * (newScale / transform.scale);
+            transform.y = mouseY - (mouseY - transform.y) * (newScale / transform.scale);
+            transform.scale = newScale;
+        });
+
+        container.addEventListener('mousedown', (e) => {
+            if(isTesting) return;
+            if(e.button === 1 || currentTool === 'pan' || isSpacePressed) {
+                isDragging = true;
+                lastMouse = { x: e.clientX, y: e.clientY };
+                container.style.cursor = 'grabbing';
+                return;
+            }
+            
+            const rawM = getWorldPos(e);
+            const m = getWorldPos(e);
+            
+            // Snap Logic
+            if(snapToGrid && !isTesting) {
+                m.x = Math.round(m.x / gridSize) * gridSize;
+                m.y = Math.round(m.y / gridSize) * gridSize;
+            }
+
+            startPos = { ...m };
+            isDrawing = true;
+
+            if(currentTool === 'select') selectObject(rawM.x, rawM.y);
+            if(currentTool === 'zone') currentPoly.push(m);
+            
+            if(editorMode === 'ui') {
+                if(currentTool === 'ui_select') selectUiElement(m.x, m.y);
+                // Drawing UI elements handled in mouseup
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if(isDragging) {
+                const dx = e.clientX - lastMouse.x;
+                const dy = e.clientY - lastMouse.y;
+                transform.x += dx;
+                transform.y += dy;
+                lastMouse = { x: e.clientX, y: e.clientY };
+                return;
+            }
+            
+            const m = getWorldPos(e);
+            document.getElementById('coord-display').innerText = `X: ${Math.round(m.x)} Y: ${Math.round(m.y)}`;
+
+            // Preview UI Drawing
+            if(isDrawing && editorMode === 'ui' && currentTool.startsWith('ui_') && currentTool !== 'ui_select') {
+                // Force redraw to show preview rect
+                requestAnimationFrame(() => {
+                    draw();
+                    // Preview logic is inside draw() or handled here if needed, but draw() clears canvas.
+                });
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if(isDragging) {
+                isDragging = false;
+                container.style.cursor = currentTool === 'pan' ? 'grab' : 'default';
+                return;
+            }
+            if(!isDrawing) return;
+            isDrawing = false;
+            
+            const m = getWorldPos(e);
+            
+            // Snap Logic for End Pos
+            if(snapToGrid && !isTesting) {
+                m.x = Math.round(m.x / gridSize) * gridSize;
+                m.y = Math.round(m.y / gridSize) * gridSize;
+            }
+            
+            // Tool Actions
+            if(currentTool === 'wall') {
+                let w = m.x - startPos.x;
+                let h = m.y - startPos.y;
+                // Normalize rect
+                let x = startPos.x; let y = startPos.y;
+                if(w < 0) { x = m.x; w = Math.abs(w); }
+                if(h < 0) { y = m.y; h = Math.abs(h); }
+                if(w > 5 && h > 5) {
+                    mapData.walls.push({ type: 'rect', x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) });
+                    autoSave();
+                }
+            } else if(currentTool === 'wall_line') {
+                mapData.walls.push({ type: 'line', x1: Math.round(startPos.x), y1: Math.round(startPos.y), x2: Math.round(m.x), y2: Math.round(m.y) });
+                autoSave();
+            } else if(currentTool === 'wall_circle') {
+                let rx = Math.abs(m.x - startPos.x);
+                let ry = Math.abs(m.y - startPos.y);
+                if(rx > 5 || ry > 5) {
+                    mapData.walls.push({ type: 'circle', x: Math.round(startPos.x), y: Math.round(startPos.y), rx: Math.round(rx), ry: Math.round(ry) });
+                    autoSave();
+                }
+            } else if(currentTool === 'task') {
+                const t = { x: Math.round(m.x), y: Math.round(m.y), type: toolSettings.taskType };
+                mapData.tasks.push(t);
+                selectedObj = { type: 'task', data: t };
+                renderSidebar();
+                autoSave();
+            } else if(currentTool === 'vent') {
+                mapData.vents.push({ x: Math.round(m.x), y: Math.round(m.y), w: 40, h: 40 });
+                autoSave();
+            } else if (currentTool === 'seat') {
+                if(!mapData.seats) mapData.seats = [];
+                mapData.seats.push({ x: Math.round(m.x), y: Math.round(m.y), w: 40, h: 40 });
+                temporaryEffects.push({ type: 'spawn_crew', x: m.x, y: m.y, life: 60 });
+                autoSave();
+            } else if (currentTool === 'game_pc') {
+                if(!mapData.game_pcs) mapData.game_pcs = [];
+                mapData.game_pcs.push({ x: Math.round(m.x), y: Math.round(m.y), w: 50, h: 50 });
+                autoSave();
+            } else if (currentTool === 'customize_pc') {
+                if(!mapData.customize_pcs) mapData.customize_pcs = [];
+                mapData.customize_pcs.push({ x: Math.round(m.x), y: Math.round(m.y), w: 50, h: 50 });
+                autoSave();
+            } else if(currentTool === 'spawn') {
+                mapData.spawns.push({ x: Math.round(m.x), y: Math.round(m.y) });
+                autoSave();
+            } else if(currentTool === 'cam') {
+                const name = "CAM " + (mapData.cameras.length + 1);
+                const c = { x: Math.round(m.x), y: Math.round(m.y), name: name };
+                mapData.cameras.push(c);
+                selectedObj = { type: 'cam', data: c };
+                renderSidebar();
+                autoSave();
+            } else if(currentTool === 'waypoint') {
+                mapData.waypoints.push({ x: Math.round(m.x), y: Math.round(m.y) });
+                autoSave();
+            } else if(currentTool === 'animation') {
+                const anim = { x: Math.round(m.x), y: Math.round(m.y), src: '', w: 50, h: 50, frames: 1, speed: 10, currentFrame: 0 };
+                mapData.animations.push(anim);
+                selectedObj = { type: 'animation', data: anim };
+                renderSidebar();
+                autoSave();
+            }
+            
+            // UI Tools
+            if(editorMode === 'ui' && currentUiId) {
+                const ui = mapData.uis.find(u => u.id === currentUiId);
+                if(ui) {
+                    let w = m.x - startPos.x;
+                    let h = m.y - startPos.y;
+                    if(w < 0) { startPos.x = m.x; w = Math.abs(w); }
+                    if(h < 0) { startPos.y = m.y; h = Math.abs(h); }
+                    
+                    if(w > 5 && h > 5) {
+                        const type = currentTool.replace('ui_', '');
+                        const def = UI_TYPES.find(t => t.id === type)?.def || {};
+                        
+                        let elem = { x: Math.round(startPos.x), y: Math.round(startPos.y), w: Math.round(w), h: Math.round(h), type: type, ...def };
+                        // Override w/h from drag if needed, but keep defaults if drag was tiny? No, drag rules.
+                        elem.w = Math.round(w); elem.h = Math.round(h);
+                        
+                        if(currentTool !== 'ui_select') { ui.elements.push(elem); selectedObj = { type: 'ui_element', data: elem }; renderSidebar(); autoSave(); }
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if(e.code === 'Space' && !isSpacePressed) {
+                isSpacePressed = true;
+                container.style.cursor = 'grab';
+            }
+            if(e.key === 'Enter' && currentTool === 'zone' && currentPoly.length > 2) {
+                mapData.zones.push([...currentPoly]);
+                currentPoly = [];
+                autoSave();
+            }
+            if(e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+            if(e.key === 'z' && e.ctrlKey) { /* Undo logic could go here */ }
+            
+            if(isTesting) inputKeys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if(e.code === 'Space') {
+                isSpacePressed = false;
+                container.style.cursor = 'default';
+            }
+            if(isTesting) inputKeys[e.key] = false;
+        });
+
+        // --- LOGIC & RENDERING ---
+        function setTool(t) {
+            currentTool = t;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + t).classList.add('active');
+            selectedObj = null;
+            renderSidebar();
+        }
+
+        function selectObject(x, y) {
+            const hitDist = 20;
+            selectedObj = null;
+            
+            // Check Tasks
+            for(let t of mapData.tasks) {
+                if(Math.hypot(t.x - x, t.y - y) < hitDist) { selectedObj = {type: 'task', data: t}; break; }
+            }
+            // Check Walls (Rect, Line, Circle)
+            if(!selectedObj) {
+                for(let w of mapData.walls) {
+                    if(w.type === 'rect') {
+                        if(x >= w.x && x <= w.x + w.w && y >= w.y && y <= w.y + w.h) { selectedObj = {type: 'wall', data: w}; break; }
+                    } else if(w.type === 'line') {
+                        if(distToSegment({x,y}, {x:w.x1, y:w.y1}, {x:w.x2, y:w.y2}) < 10) { selectedObj = {type: 'wall', data: w}; break; }
+                    } else if(w.type === 'circle') {
+                        // Check ellipse collision: (x-h)^2/a^2 + (y-k)^2/b^2 <= 1
+                        let val = ((x - w.x)**2) / (w.rx**2) + ((y - w.y)**2) / (w.ry**2);
+                        if(val <= 1) { selectedObj = {type: 'wall', data: w}; break; }
+                    }
+                }
+            }
+            // Check Animations
+            if(!selectedObj) {
+                for(let a of mapData.animations) {
+                    if(x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h) { selectedObj = {type: 'animation', data: a}; break; }
+                }
+            }
+            // Check Spawns
+            if(!selectedObj) {
+                for(let s of mapData.spawns) {
+                    if(Math.hypot(s.x - x, s.y - y) < hitDist) { selectedObj = {type: 'spawn', data: s}; break; }
+                }
+            }
+            // Check Cameras
+            if(!selectedObj) {
+                for(let c of mapData.cameras) {
+                    if(Math.hypot(c.x - x, c.y - y) < hitDist) { selectedObj = {type: 'cam', data: c}; break; }
+                }
+            }
+            // Check Waypoints
+            if(!selectedObj) {
+                for(let wp of mapData.waypoints) {
+                    if(Math.hypot(wp.x - x, wp.y - y) < hitDist) { selectedObj = {type: 'waypoint', data: wp}; break; }
+                }
+            }
+            renderSidebar();
+        }
+
+        function selectUiElement(x, y) {
+            selectedObj = null;
+            const ui = mapData.uis.find(u => u.id === currentUiId);
+            if(!ui) return;
+            
+            // Iterate reverse to select top-most
+            for(let i = ui.elements.length - 1; i >= 0; i--) {
+                const e = ui.elements[i];
+                if(x >= e.x && x <= e.x + e.w && y >= e.y && y <= e.y + e.h) {
+                    selectedObj = { type: 'ui_element', data: e };
+                    break;
+                }
+            }
+            renderSidebar();
+        }
+
+        function selectUiElementByIndex(idx) {
+            const ui = mapData.uis.find(u => u.id === currentUiId);
+            if(!ui || !ui.elements[idx]) return;
+            selectedObj = { type: 'ui_element', data: ui.elements[idx] };
+            renderSidebar();
+        }
+
+        function deleteSelected() {
+            if(!selectedObj) return;
+            if(selectedObj.type === 'task') mapData.tasks = mapData.tasks.filter(o => o !== selectedObj.data);
+            if(selectedObj.type === 'wall') mapData.walls = mapData.walls.filter(o => o !== selectedObj.data);
+            if(selectedObj.type === 'spawn') mapData.spawns = mapData.spawns.filter(o => o !== selectedObj.data);
+            if(selectedObj.type === 'cam') mapData.cameras = mapData.cameras.filter(o => o !== selectedObj.data);
+            if(selectedObj.type === 'waypoint') mapData.waypoints = mapData.waypoints.filter(o => o !== selectedObj.data);
+            if(selectedObj.type === 'seat') mapData.seats = mapData.seats.filter(o => o !== selectedObj.data);
+            if(selectedObj.type === 'animation') mapData.animations = mapData.animations.filter(o => o !== selectedObj.data);
+            
+            if(selectedObj.type === 'ui_element' && currentUiId) {
+                const ui = mapData.uis.find(u => u.id === currentUiId);
+                if(ui) ui.elements = ui.elements.filter(e => e !== selectedObj.data);
+            }
+            
+            selectedObj = null;
+            renderSidebar();
+            autoSave();
+            showToast('Objeto eliminado', 'info');
+        }
+
+        function renderSidebar() {
+            const content = document.getElementById('sidebar-content');
+            content.innerHTML = '';
+
+            if(selectedObj) {
+                let html = `<div class="prop-row"><span class="prop-label">TIPO</span><b>${selectedObj.type.toUpperCase()}</b></div>`;
+                
+                if(selectedObj.type === 'task') {
+                    html += `<div class="prop-row"><span class="prop-label">Tipo de Tarea</span><div class="task-grid">`;
+                    TASK_TYPES.forEach(t => {
+                        const sel = selectedObj.data.type === t.id ? 'selected' : '';
+                        html += `<div class="task-option ${sel}" onclick="updateProp('type', '${t.id}')"><span class="task-icon">${t.icon}</span><span class="task-name">${t.label}</span></div>`;
+                    });
+                    html += `</div></div>
+                    <div class="prop-row"><span class="prop-label">Modo Visual</span>
+                        <select class="prop-input" onchange="updateProp('renderMode', this.value)">
+                            <option value="circle" ${selectedObj.data.renderMode !== 'invisible' ? 'selected' : ''}>Círculo (Default)</option>
+                            <option value="invisible" ${selectedObj.data.renderMode === 'invisible' ? 'selected' : ''}>Invisible (Usar Sprite)</option>
+                        </select>
+                    </div>`;
+                } else if(selectedObj.type === 'wall') {
+                    if(selectedObj.data.type === 'rect') {
+                        html += `<div class="prop-row"><span class="prop-label">Ancho</span><input type="number" class="prop-input" value="${selectedObj.data.w}" onchange="updateProp('w', parseInt(this.value))"></div>`;
+                        html += `<div class="prop-row"><span class="prop-label">Alto</span><input type="number" class="prop-input" value="${selectedObj.data.h}" onchange="updateProp('h', parseInt(this.value))"></div>`;
+                    } else if(selectedObj.data.type === 'circle') {
+                        html += `<div class="prop-row"><span class="prop-label">Radio X</span><input type="number" class="prop-input" value="${selectedObj.data.rx}" onchange="updateProp('rx', parseInt(this.value))"></div>`;
+                        html += `<div class="prop-row"><span class="prop-label">Radio Y</span><input type="number" class="prop-input" value="${selectedObj.data.ry}" onchange="updateProp('ry', parseInt(this.value))"></div>`;
+                    }
+                } else if(selectedObj.type === 'cam') {
+                    html += `<div class="prop-row"><span class="prop-label">Nombre</span><input class="prop-input" value="${selectedObj.data.name}" onchange="updateProp('name', this.value)"></div>`;
+                } else if(selectedObj.type === 'animation') {
+                    html += `<div class="prop-row"><span class="prop-label">URL Imagen (Spritesheet)</span><input class="prop-input" value="${selectedObj.data.src || ''}" onchange="updateProp('src', this.value)"></div>`;
+                    html += `<div class="prop-row"><span class="prop-label">Ancho Frame</span><input type="number" class="prop-input" value="${selectedObj.data.w}" onchange="updateProp('w', parseInt(this.value))"></div>`;
+                    html += `<div class="prop-row"><span class="prop-label">Alto Frame</span><input type="number" class="prop-input" value="${selectedObj.data.h}" onchange="updateProp('h', parseInt(this.value))"></div>`;
+                    html += `<div class="prop-row"><span class="prop-label">Total Frames</span><input type="number" class="prop-input" value="${selectedObj.data.frames}" onchange="updateProp('frames', parseInt(this.value))"></div>`;
+                    html += `<div class="prop-row"><span class="prop-label">Velocidad (ms)</span><input type="number" class="prop-input" value="${selectedObj.data.speed}" onchange="updateProp('speed', parseInt(this.value))"></div>`;
+                    
+                    // Preview helper
+                    html += `<div style="margin-top:10px; border:1px solid #444; padding:5px; text-align:center;">
+                        <small>Preview</small><br>
+                        <canvas id="anim-preview" width="50" height="50"></canvas>
+                    </div>`;
+                    setTimeout(() => {
+                        const pCanvas = document.getElementById('anim-preview');
+                        if(pCanvas && selectedObj.data.src) {
+                            const img = new Image(); img.src = selectedObj.data.src;
+                            img.onload = () => pCanvas.getContext('2d').drawImage(img, 0, 0, selectedObj.data.w, selectedObj.data.h, 0, 0, 50, 50);
+                        }
+                    }, 100);
+                } else if(selectedObj.type === 'ui_element') {
+                    // --- UI PROPERTIES (50+ OPTIONS) ---
+                    
+                    // 1. APARIENCIA
+                    let styleHtml = '';
+                    styleHtml += createColorInput('Fondo', d.color, 'color');
+                    styleHtml += createInput('Opacidad', d.opacity !== undefined ? d.opacity : 1, 'opacity', 'number');
+                    styleHtml += createCheckbox('Visible', d.visible !== false, 'visible');
+                    styleHtml += createInput('Z-Index', d.zIndex || 0, 'zIndex', 'number');
+                    styleHtml += createInput('Rotación', d.rotation || 0, 'rotation', 'number');
+                    propsHtml += createSection('APARIENCIA', styleHtml);
+
+                    // 2. BORDES Y SOMBRAS
+                    let borderHtml = '';
+                    borderHtml += createInput('Radio Borde', d.borderRadius || 0, 'borderRadius', 'number');
+                    borderHtml += createInput('Ancho Borde', d.borderWidth || 0, 'borderWidth', 'number');
+                    borderHtml += createColorInput('Color Borde', d.borderColor, 'borderColor');
+                    borderHtml += `<div style="height:1px; background:#444; margin:5px 0;"></div>`;
+                    borderHtml += createInput('Sombra Blur', d.shadowBlur || 0, 'shadowBlur', 'number');
+                    borderHtml += createColorInput('Color Sombra', d.shadowColor, 'shadowColor');
+                    borderHtml += createVec2('Sombra X', d.shadowX || 0, 'shadowX', 'Sombra Y', d.shadowY || 0, 'shadowY');
+                    propsHtml += createSection('BORDES Y SOMBRAS', borderHtml, false);
+
+                    // 3. TEXTO (Si aplica)
+                    if(d.text !== undefined || d.placeholder !== undefined) {
+                        let textHtml = '';
+                        if(d.text !== undefined) textHtml += createInput('Contenido', d.text, 'text');
+                        if(d.placeholder !== undefined) textHtml += createInput('Placeholder', d.placeholder, 'placeholder');
+                        textHtml += createSelect('Fuente', d.fontFamily || 'Arial', 'fontFamily', FONTS);
+                        textHtml += createInput('Tamaño', d.fontSize || 14, 'fontSize', 'number');
+                        textHtml += createColorInput('Color Texto', d.textColor || '#ffffff', 'textColor');
+                        textHtml += createSelect('Alineación', d.textAlign || 'center', 'textAlign', [{id:'left',label:'Izq'},{id:'center',label:'Centro'},{id:'right',label:'Der'}]);
+                        propsHtml += createSection('TEXTOGRAFÍA', textHtml);
+                    }
+
+                    // 4. ESPECÍFICOS
+                    let specHtml = '';
+                    if(d.value !== undefined) specHtml += createInput('Valor', d.value, 'value', 'number');
+                    if(d.checked !== undefined) specHtml += createCheckbox('Marcado', d.checked, 'checked');
+                    if(d.src !== undefined) specHtml += createInput('URL Imagen', d.src, 'src');
+                    if(specHtml) propsHtml += createSection('ESPECÍFICO', specHtml);
+                    
+                    // 5. ANIMADOR (TRIGGERS)
+                    let animHtml = `<div style="margin-bottom:10px;">`;
+                    if(d.animations && d.animations.length > 0) {
+                        d.animations.forEach((anim, i) => {
+                            animHtml += `<div style="background:#333; padding:5px; margin-bottom:5px; border-left:3px solid #e67e22; font-size:10px;">
+                                <b>${anim.type.toUpperCase()}</b> (${anim.duration}ms) <span style="float:right; cursor:pointer; color:#e74c3c;" onclick="removeTrigger(${i})">✖</span>
+                                <br>Delay: ${anim.delay}ms | Ease: ${anim.ease}
+                            </div>`;
+                        });
+                    } else { animHtml += `<div style="color:#666; font-style:italic;">Sin animaciones</div>`; }
+                    animHtml += `</div>
+                    <button class="btn-full" onclick="addTriggerPrompt()">+ AÑADIR TRIGGER</button>`;
+                    propsHtml += createSection('ANIMADOR (TRIGGERS)', animHtml);
+                }
+                
+                html += createSection('PROPIEDADES', propsHtml);
+
+                // 4. LOGIC SECTION (New)
+                let logicHtml = '';
+                logicHtml += createCheckbox('Activo al Inicio', d.activeAtStart !== false, 'activeAtStart'); // Default true
+                logicHtml += createInput('Función Interact', d.onInteract, 'onInteract');
+                html += createSection('LÓGICA / EVENTOS', logicHtml, false);
+
+                html += `<div style="padding:10px;"><button class="btn-full btn-danger" onclick="deleteSelected()">ELIMINAR OBJETO</button></div>`;
+                content.innerHTML = html;
+            } else if (editorMode === 'ui') {
+                // UI Manager
+                let html = `<div style="padding:10px;">
+                    <div class="prop-label">GESTIÓN DE INTERFACES</div>
+                    <select class="input-control" onchange="currentUiId = this.value; renderSidebar();" style="margin-bottom:10px;">`;
+                
+                mapData.uis.forEach(u => {
+                    html += `<option value="${u.id}" ${u.id === currentUiId ? 'selected' : ''}>${u.name}</option>`;
+                });
+                
+                html += `</select>
+                    <button class="btn-full" onclick="createNewUi()">+ NUEVA UI</button>
+                    
+                    <div class="sidebar-section" style="margin-top:10px;">
+                        <div class="section-header">CONFIGURACIÓN UI</div>
+                        <div class="section-content">
+                            <div class="vec2-row">
+                                <div class="vec2-item"><span class="vec2-label">W</span><input class="vec2-input" type="number" value="${mapData.uis.find(u=>u.id===currentUiId)?.width||800}" onchange="updateUiProp('width', parseInt(this.value))"></div>
+                                <div class="vec2-item"><span class="vec2-label">H</span><input class="vec2-input" type="number" value="${mapData.uis.find(u=>u.id===currentUiId)?.height||600}" onchange="updateUiProp('height', parseInt(this.value))"></div>
+                            </div>
+                            ${createUiColorInput('Fondo', mapData.uis.find(u=>u.id===currentUiId)?.background||'#111111', 'background')}
+                            <div class="prop-group">
+                                <span class="prop-label">Imagen Fondo</span>
+                                <button class="btn-full" onclick="document.getElementById('uiBgLoader').click()">Seleccionar Imagen</button>
+                            </div>
+                        </div>
+                    </div>`;
+                
+                // UI Toolbox
+                html += `<div class="prop-label" style="margin-top:20px; margin-bottom:5px;">AÑADIR ELEMENTO</div>
+                         <div class="task-grid">`;
+                UI_TYPES.forEach(t => {
+                    const isActive = currentTool === 'ui_' + t.id ? 'selected' : '';
+                    html += `<div class="task-option ${isActive}" onclick="addUiElement('${t.id}')">
+                                <span class="task-icon"><i class="${t.icon}"></i></span>
+                                <span class="task-name">${t.label}</span>
+                             </div>`;
+                });
+                html += `</div>`;
+
+                // Hierarchy
+                html += `<div class="prop-label" style="margin-top:20px; margin-bottom:5px;">JERARQUÍA</div>
+                         <div style="background:#1e1e1e; border:1px solid #3e3e42; max-height:200px; overflow-y:auto;">`;
+                const ui = mapData.uis.find(u => u.id === currentUiId);
+                if(ui && ui.elements) {
+                    ui.elements.forEach((el, idx) => {
+                        html += `<div style="padding:4px 8px; cursor:pointer; border-bottom:1px solid #333; font-size:11px; display:flex; align-items:center;" onclick="selectUiElementByIndex(${idx})">
+                                    <i class="${UI_TYPES.find(t=>t.id===el.type)?.icon || 'fa-solid fa-square'}" style="margin-right:6px; width:12px;"></i> ${el.type} [${idx}]
+                                 </div>`;
+                    });
+                }
+                html += `</div>
+                </div>`;
+                content.innerHTML = html;
+            } else {
+                // Tool Settings
+                if(currentTool === 'task') { // ... existing tool settings ...
+                    let html = `<div style="padding:10px;"><div class="prop-label" style="margin-bottom:5px;">Nueva Tarea: Tipo</div><div class="task-grid">`;
+                    TASK_TYPES.forEach(t => {
+                        const sel = toolSettings.taskType === t.id ? 'selected' : '';
+                        html += `<div class="task-option ${sel}" onclick="toolSettings.taskType = '${t.id}'; renderSidebar()"><span class="task-icon">${t.icon}</span><span class="task-name">${t.label}</span></div>`;
+                    });
+                    html += `</div></div>`;
+                    content.innerHTML = html;
+                } else if(currentTool === 'waypoint') {
+                    content.innerHTML = `<div style="color:#aaa; text-align:center; margin-top:20px;">Haz clic para colocar puntos de ruta para los bots.</div>`;
+                } else {
+                    content.innerHTML = `<div style="color:#666; text-align:center; margin-top:20px;">Herramienta: ${currentTool.toUpperCase()}</div>`;
+                }
+            }
+        }
+
+        function updateUiProp(key, val) {
+            const ui = mapData.uis.find(u => u.id === currentUiId);
+            if(ui) {
+                if(key === 'background') ui.background = val;
+                else ui[key] = val;
+                autoSave();
+            }
+        }
+
+        function addTriggerPrompt() {
+            if(!selectedObj || selectedObj.type !== 'ui_element') return;
+            const type = prompt("Tipo de Trigger (move, scale, fade, rotate, color):", "move");
+            if(!type) return;
+            
+            const anim = {
+                type: type, duration: 1000, delay: 0, ease: 'linear',
+                targetX: 0, targetY: 0, targetVal: 1 // Generic targets
+            };
+            
+            if(!selectedObj.data.animations) selectedObj.data.animations = [];
+            selectedObj.data.animations.push(anim);
+            renderSidebar();
+            autoSave();
+        }
+
+        function removeTrigger(idx) {
+            if(selectedObj && selectedObj.data.animations) {
+                selectedObj.data.animations.splice(idx, 1);
+                renderSidebar();
+                autoSave();
+            }
+        }
+
+        window.updateProp = function(key, val) {
+            if(selectedObj) {
+                selectedObj.data[key] = val;
+                autoSave();
+                renderSidebar();
+            }
+        }
+
+        function addUiElement(type) {
+            if(!currentUiId) { alert("Crea o selecciona una UI primero."); return; }
+            // Set tool to draw
+            setTool('ui_' + type);
+            // Update sidebar to show tool is active
+            renderSidebar();
+        }
+
+        function showToast(msg, type='info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.borderLeftColor = type === 'success' ? '#2ecc71' : type === 'error' ? '#e74c3c' : '#3498db';
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // --- TEST MODE ---
+        function toggleTest() {
+            if(isTesting) {
+                // Stop Testing
+                isTesting = false;
+                document.getElementById('btn-test').classList.remove('active');
+            } else {
+                // Open Selection
+                document.getElementById('char-select-modal').style.display = 'flex';
+            }
+        }
+
+        function confirmTest() {
+            document.getElementById('char-select-modal').style.display = 'none';
+            isTesting = true;
+            document.getElementById('btn-test').classList.add('active');
+            
+            if(mapData.spawns.length > 0) {
+                testPlayer.x = mapData.spawns[0].x;
+                testPlayer.y = mapData.spawns[0].y;
+            } else {
+                testPlayer.x = 100; testPlayer.y = 100;
+            }
+            showToast('Modo Prueba: WASD para mover', 'info');
+        }
+
+        function updateTest() {
+            if(!isTesting) return;
+            let dx = 0, dy = 0;
+            if(inputKeys['w'] || inputKeys['ArrowUp']) dy = -testPlayer.speed;
+            if(inputKeys['s'] || inputKeys['ArrowDown']) dy = testPlayer.speed;
+            if(inputKeys['a'] || inputKeys['ArrowLeft']) dx = -testPlayer.speed;
+            if(inputKeys['d'] || inputKeys['ArrowRight']) dx = testPlayer.speed;
+
+            if(dx !== 0 || dy !== 0) {
+                if(!checkCollision(testPlayer.x + dx, testPlayer.y)) testPlayer.x += dx;
+                if(!checkCollision(testPlayer.x, testPlayer.y + dy)) testPlayer.y += dy;
+            }
+        }
+
+        function checkCollision(x, y) {
+            const hw = 15; // Radio del jugador
+            for(let w of mapData.walls) {
+                if(w.type === 'rect') {
+                    if(x + hw > w.x && x - hw < w.x + w.w && y + hw > w.y && y - hw < w.y + w.h) return true;
+                } else if(w.type === 'line') {
+                    // Colisión precisa Punto-Segmento
+                    const dist = distToSegment({x,y}, {x:w.x1, y:w.y1}, {x:w.x2, y:w.y2});
+                    if (dist < hw) return true;
+                } else if(w.type === 'circle') {
+                    // Colisión Elipse
+                    let val = ((x - w.x)**2) / ((w.rx+hw)**2) + ((y - w.y)**2) / ((w.ry+hw)**2);
+                    if(val <= 1) return true;
+                }
+            }
+            return false;
+        }
+
+        function distToSegment(p, v, w) {
+            const l2 = (w.x - v.x)**2 + (w.y - v.y)**2;
+            if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+        }
+
+        // --- ANIMATION SYSTEM ---
+        const loadedSprites = {};
+        function drawSprite(ctx, anim) {
+            if(!anim.src) {
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.5)';
+                ctx.fillRect(anim.x, anim.y, anim.w, anim.h);
+                ctx.fillStyle = 'white'; ctx.font = '10px Arial'; ctx.fillText('NO IMG', anim.x, anim.y+10);
+                return;
+            }
+            if(!loadedSprites[anim.src]) {
+                loadedSprites[anim.src] = new Image();
+                loadedSprites[anim.src].src = anim.src;
+            }
+            const img = loadedSprites[anim.src];
+            if(img.complete) {
+                const frameIndex = Math.floor(Date.now() / anim.speed) % anim.frames;
+                ctx.drawImage(img, frameIndex * anim.w, 0, anim.w, anim.h, anim.x, anim.y, anim.w, anim.h);
+            }
+        }
+
+        // --- RENDER LOOP ---
+        function loop() {
+            updateTest();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.translate(transform.x, transform.y);
+            ctx.scale(transform.scale, transform.scale);
+
+            if(editorMode === 'ui') {
+                drawUiMode();
+            } else {
+                drawMapMode();
+            }
+            ctx.restore();
+        }
+
+        function drawMapMode() {
+            if(mapImage.src) ctx.drawImage(mapImage, 0, 0);
+
+            // Draw Grid
+            if(showGrid) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                const w = mapImage.width || 5000;
+                const h = mapImage.height || 5000;
+                ctx.beginPath();
+                for(let x=0; x<=w; x+=gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+                for(let y=0; y<=h; y+=gridSize) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+                ctx.stroke();
+            }
+
+            // Draw Walls
+            // Draw Animations (Bottom Layer)
+            mapData.animations.forEach(a => {
+                drawSprite(ctx, a);
+            });
+
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.strokeStyle = 'red'; ctx.lineWidth = 2;
+            mapData.walls.forEach(w => {
+                if(w.type === 'rect') {
+                    ctx.fillRect(w.x, w.y, w.w, w.h);
+                    ctx.strokeRect(w.x, w.y, w.w, w.h);
+                } else if(w.type === 'line') {
+                    ctx.beginPath(); ctx.moveTo(w.x1, w.y1); ctx.lineTo(w.x2, w.y2); ctx.stroke();
+                }
+                else if(w.type === 'circle') {
+                    ctx.beginPath(); ctx.ellipse(w.x, w.y, w.rx, w.ry, 0, 0, Math.PI*2); 
+                    ctx.fill(); ctx.stroke();
+                }
+            });
+
+            // Draw Zones
+            ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2;
+            mapData.zones.forEach(z => {
+                if(z.length < 2) return;
+                ctx.beginPath(); ctx.moveTo(z[0].x, z[0].y);
+                for(let i=1; i<z.length; i++) ctx.lineTo(z[i].x, z[i].y);
+                ctx.closePath(); ctx.stroke();
+            });
+
+            // Draw Tasks
+            mapData.tasks.forEach(t => {
+                if(t.renderMode !== 'invisible') {
+                    ctx.fillStyle = '#f1c40f';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, 10, 0, Math.PI*2); ctx.fill();
+                    // Icon
+                    ctx.fillStyle = 'black'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+                    const icon = TASK_TYPES.find(type => type.id === t.type)?.icon || '?';
+                    ctx.fillText(icon, t.x, t.y + 4);
+                }
+            });
+
+            // Draw Seats, PCs
+            if(mapData.seats) {
+                ctx.fillStyle = '#3742fa';
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                mapData.seats.forEach(s => {
+                    ctx.fillRect(s.x - s.w/2, s.y - s.h/2, s.w, s.h);
+                    ctx.strokeRect(s.x - s.w/2, s.y - s.h/2, s.w, s.h);
+                });
+            }
+            if(mapData.game_pcs) {
+                mapData.game_pcs.forEach(pc => {
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.fillRect(pc.x - pc.w/2, pc.y - pc.h/2, pc.w, pc.h);
+                    ctx.strokeStyle = '#000'; ctx.strokeRect(pc.x - pc.w/2, pc.y - pc.h/2, pc.w, pc.h);
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(pc.x - pc.w/2 + 5, pc.y - pc.h/2 + 5, pc.w - 10, 20);
+                });
+            }
+            if(mapData.customize_pcs) {
+                mapData.customize_pcs.forEach(pc => {
+                    ctx.fillStyle = '#f39c12';
+                    ctx.fillRect(pc.x - pc.w/2, pc.y - pc.h/2, pc.w, pc.h);
+                    ctx.strokeStyle = '#000'; ctx.strokeRect(pc.x - pc.w/2, pc.y - pc.h/2, pc.w, pc.h);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(pc.x - pc.w/2 + 5, pc.y - pc.h/2 + 5, pc.w - 10, 20);
+                });
+            }
+
+            // Draw Vents
+            ctx.fillStyle = '#555';
+            mapData.vents.forEach(v => {
+                ctx.fillRect(v.x - v.w/2, v.y - v.h/2, v.w, v.h);
+            });
+
+            // Draw Spawns
+            ctx.fillStyle = '#2ecc71';
+            mapData.spawns.forEach(s => {
+                ctx.beginPath(); ctx.arc(s.x, s.y, 15, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'black'; ctx.font = 'bold 10px Arial'; ctx.fillText('S', s.x-3, s.y+4);
+            });
+
+            // Draw Cameras
+            ctx.fillStyle = '#e74c3c';
+            mapData.cameras.forEach(c => {
+                ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(c.x-10, c.y-15); ctx.lineTo(c.x+10, c.y-15); ctx.fill();
+            });
+
+            // Current Drawing
+            if(isDrawing) {
+                const m = getWorldPos({clientX: lastMouse.x || 0, clientY: lastMouse.y || 0}); // Hacky, better to track current mouse
+                
+                if(snapToGrid) {
+                    m.x = Math.round(m.x / gridSize) * gridSize;
+                    m.y = Math.round(m.y / gridSize) * gridSize;
+                }
+
+                // Actually, we need current mouse pos for drawing preview.
+                // Let's rely on the fact that we don't have global mouse pos stored easily without another listener.
+                if(currentTool === 'wall_circle') {
+                    let rx = Math.abs(m.x - startPos.x);
+                    let ry = Math.abs(m.y - startPos.y);
+                    ctx.strokeStyle = 'red';
+                    ctx.beginPath(); ctx.ellipse(startPos.x, startPos.y, rx, ry, 0, 0, Math.PI*2);
+                    ctx.stroke();
+                }
+            }
+            
+            // Zone Preview
+            if(currentTool === 'zone' && currentPoly.length > 0) {
+                ctx.strokeStyle = '#ffd700';
+                ctx.beginPath(); ctx.moveTo(currentPoly[0].x, currentPoly[0].y);
+                for(let p of currentPoly) ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+            }
+
+            // Selection Highlight
+            if(selectedObj) {
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+                const d = selectedObj.data;
+                if(selectedObj.type === 'task' || selectedObj.type === 'spawn' || selectedObj.type === 'waypoint') {
+                    ctx.beginPath(); ctx.arc(d.x, d.y, 20, 0, Math.PI*2); ctx.stroke();
+                } else if(selectedObj.type === 'wall' && d.type === 'rect') {
+                    ctx.strokeRect(d.x-2, d.y-2, d.w+4, d.h+4);
+                } else if(selectedObj.type === 'wall' && d.type === 'circle') {
+                    ctx.beginPath(); ctx.ellipse(d.x, d.y, d.rx+2, d.ry+2, 0, 0, Math.PI*2); ctx.stroke();
+                } else if(selectedObj.type === 'animation') {
+                    ctx.strokeRect(d.x, d.y, d.w, d.h);
+                }
+                else if(selectedObj.type === 'ui_element') {
+                    ctx.strokeRect(d.x, d.y, d.w, d.h);
+                    // Resize handles could go here
+                }
+            }
+
+            // Draw UI Elements (Overlay)
+            if(editorMode === 'ui' && currentUiId) {
+                const ui = mapData.uis.find(u => u.id === currentUiId);
+                if(ui) {
+                    // Dim background
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(0, 0, mapImage.width || 5000, mapImage.height || 5000);
+                    
+                    ui.elements.forEach(e => {
+                        ctx.save();
+                        if(e.rotation) {
+                            ctx.translate(e.x + e.w/2, e.y + e.h/2);
+                            ctx.rotate(e.rotation * Math.PI/180);
+                            ctx.translate(-(e.x + e.w/2), -(e.y + e.h/2));
+                        }
+                        ctx.globalAlpha = e.opacity !== undefined ? e.opacity : 1;
+                        if(e.visible === false) ctx.globalAlpha = 0.3; // Show ghost if hidden
+
+                        ctx.fillStyle = e.color || '#fff';
+                        
+                        // Advanced Styles
+                        ctx.shadowColor = e.shadowColor || 'transparent';
+                        ctx.shadowBlur = e.shadowBlur || 0;
+                        ctx.shadowOffsetX = e.shadowX || 0;
+                        ctx.shadowOffsetY = e.shadowY || 0;
+                        
+                        if(e.type === 'panel' || e.type === 'button' || e.type === 'input' || e.type === 'checkbox' || e.type === 'progress' || e.type === 'slider' || e.type === 'toggle' || e.type === 'dropdown' || e.type === 'textarea' || e.type === 'circle') {
+                            ctx.beginPath();
+                            if(e.type === 'circle') {
+                                ctx.ellipse(e.x + e.w/2, e.y + e.h/2, e.w/2, e.h/2, 0, 0, Math.PI*2);
+                            } else if(ctx.roundRect) {
+                                ctx.roundRect(e.x, e.y, e.w, e.h, e.borderRadius || 0);
+                            } else {
+                                ctx.rect(e.x, e.y, e.w, e.h);
+                            }
+                            ctx.fill();
+                            
+                            if(e.borderWidth > 0) {
+                                ctx.lineWidth = e.borderWidth;
+                                ctx.strokeStyle = e.borderColor || 'black';
+                                ctx.stroke();
+                            }
+                        }
+                        
+                        ctx.shadowBlur = 0; // Reset shadow
+
+                        if(e.text) {
+                            ctx.fillStyle = 'white';
+                            ctx.font = (e.fontSize || 14) + 'px ' + (e.fontFamily || 'Arial');
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(e.text, e.x + e.w/2, e.y + e.h/2);
+                        }
+                    });
+                }
+            }
+
+            // Test Player
+            if(isTesting) {
+                drawCrewmate(ctx, testPlayer.x, testPlayer.y, testPlayer.color, testPlayer.dir, 1, testPlayer.moving);
+            }
+
+            // Draw temporary effects
+            if (temporaryEffects) {
+                for (let i = temporaryEffects.length - 1; i >= 0; i--) {
+                    const effect = temporaryEffects[i];
+                    effect.life--;
+                    if (effect.life <= 0) {
+                        temporaryEffects.splice(i, 1);
+                        continue;
+                    }
+                    if (effect.type === 'spawn_crew') {
+                        const alpha = effect.life > 30 ? 1 - ((effect.life - 30) / 30) : effect.life / 30;
+                        drawCrewmateForEffect(effect.x, effect.y, alpha);
+                    }
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function drawCrewmate(ctx, x, y, color, dir, scale, moving) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(dir * scale, scale);
+            
+            // Bobbing (Animación al caminar)
+            let bob = moving ? Math.sin(Date.now() / 100) * 3 : 0;
+            ctx.translate(0, -bob);
+
+            ctx.strokeStyle = 'black'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+
+            // Mochila
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.rect(-22, -15, 10, 25); ctx.fill(); ctx.stroke();
+
+            // Piernas
+            ctx.beginPath(); ctx.roundRect(-12, 10, 10, 12, 4); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.roundRect(2, 10, 10, 12, 4); ctx.fill(); ctx.stroke();
+
+            // Cuerpo
+            ctx.beginPath(); ctx.roundRect(-15, -25, 30, 40, 12); ctx.fill(); ctx.stroke();
+
+            // Visor
+            ctx.fillStyle = '#80daff';
+            ctx.beginPath(); ctx.roundRect(-5, -18, 22, 14, 6); ctx.fill(); ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function drawCrewmateForEffect(x, y, alpha) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(x, y);
+            ctx.scale(0.8, 0.8);
+
+            const c = { body: '#132ED1' }; // Blue crewmate
+            ctx.fillStyle = c.body;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+
+            ctx.beginPath(); ctx.roundRect(-15, -25, 30, 40, 12); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#80daff';
+            ctx.beginPath(); ctx.roundRect(-5, -18, 22, 14, 6); ctx.fill(); ctx.stroke();
+            ctx.restore();
+        }
+
+        init();
+    </script>
+</body>
+</html>

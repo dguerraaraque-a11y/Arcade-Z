@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minefun.io | Arcade-Z</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -80,16 +81,65 @@
             border: none;
         }
 
-        /* PANTALLA DE CARGA DENTRO DEL CANVAS */
-        #loader {
-            position: absolute;
-            inset: 0;
-            background: #111;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
+        /* SPLASH SCREEN ESTILO POKI */
+        .splash-screen {
+            position: absolute; inset: 0; z-index: 20;
+            background: linear-gradient(135deg, #1a1a1d 0%, #000 100%);
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; transition: opacity 0.5s;
+        }
+        
+        .splash-bg {
+            position: absolute; width: 100%; height: 100%;
+            /* Imagen de fondo estilo Minecraft/Voxel borrosa */
+            background: url('https://images.unsplash.com/photo-1627856014759-08529612289d?q=80&w=1000&auto=format&fit=crop') center/cover;
+            opacity: 0.4; filter: blur(8px);
+        }
+
+        .splash-content { position: relative; z-index: 2; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+        .game-logo-text {
+            font-size: 60px; font-weight: 900; color: var(--accent);
+            text-shadow: 4px 4px 0 #000, 0 0 20px rgba(50, 255, 126, 0.5); 
+            margin-bottom: 40px;
+            font-family: 'Arial Black', sans-serif; letter-spacing: -2px;
+            transform: skew(-5deg);
+        }
+
+        .loading-container { width: 300px; margin: 0 auto; }
+        
+        .loading-bar-bg {
+            width: 100%; height: 20px; background: rgba(0,0,0,0.6);
+            border-radius: 10px; overflow: hidden; border: 2px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px; position: relative;
+        }
+        
+        .loading-bar-fill {
+            width: 0%; height: 100%; background: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        #loading-text { color: #aaa; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+
+        .splash-btn {
+            display: none; margin: 0 auto;
+            background: linear-gradient(to bottom, #32ff7e, #27ae60);
+            border: none; border-bottom: 6px solid #1e8449;
+            color: #004d26; font-size: 24px; font-weight: 900;
+            padding: 18px 60px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.1s, border-bottom 0.1s, filter 0.2s;
+            text-transform: uppercase; font-family: 'Inter', sans-serif;
+        }
+        
+        .splash-btn:active { transform: translateY(6px); border-bottom: 0px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .splash-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        @keyframes popIn { 
+            0% { transform: scale(0); opacity: 0; } 
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         /* --- INFO Y ACCIONES --- */
@@ -171,6 +221,7 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body onclick="resumeAudio()"> <nav>
@@ -187,9 +238,16 @@
     <div class="main-content">
         <div class="game-area">
             <div id="game-vp" class="viewport-container">
-                <div id="loader">
-                    <div style="width: 40px; height: 40px; border: 4px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <p style="color: var(--accent); margin-top: 15px; font-weight: bold;">CARGANDO MUNDO...</p>
+                <div id="loader" class="splash-screen">
+                    <div class="splash-bg"></div>
+                    <div class="splash-content">
+                        <div class="game-logo-text">MINEFUN<span style="color:#fff">.IO</span></div>
+                        <div class="loading-container">
+                            <div class="loading-bar-bg"><div id="splash-progress" class="loading-bar-fill"></div></div>
+                            <div id="loading-text">CONECTANDO AL SERVIDOR...</div>
+                        </div>
+                        <button id="splash-btn" class="splash-btn" onclick="startGame()">JUGAR AHORA</button>
+                    </div>
                 </div>
                 
                 <iframe 
@@ -197,7 +255,7 @@
                     src="https://minefun.io" 
                     allow="autoplay; pointer-lock; fullscreen; encrypted-media; gyroscope; accelerometer"
                     sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-scripts allow-same-origin"
-                    onload="hideLoader()">
+                    onload="onFrameLoad()">
                 </iframe>
             </div>
 
@@ -312,9 +370,26 @@
 </script>
 
     <script>
-        function hideLoader() {
+        function onFrameLoad() {
+            // Simular carga final
+            const bar = document.getElementById('splash-progress');
+            const btn = document.getElementById('splash-btn');
+            const container = document.querySelector('.loading-container');
+            
+            bar.style.width = '100%';
+            
+            setTimeout(() => {
+                container.style.display = 'none';
+                btn.style.display = 'block';
+                btn.style.animation = 'popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            }, 1000);
+        }
+
+        function startGame() {
             const loader = document.getElementById('loader');
-            if(loader) loader.style.display = 'none';
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 500);
+            resumeAudio();
         }
 
         function toggleFull() {
